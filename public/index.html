@@ -1,0 +1,2832 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نظام إدارة محل بلاي ستيشن</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* ===== CSS VARIABLES & RESET ===== */
+:root {
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #111118;
+  --bg-card: #16161f;
+  --bg-input: #1e1e2a;
+  --border: #2a2a3a;
+  --border-light: #333345;
+  --text-primary: #f0f0ff;
+  --text-secondary: #9090b0;
+  --text-muted: #5a5a7a;
+  --accent: #6c63ff;
+  --accent-hover: #7c74ff;
+  --accent-glow: rgba(108,99,255,0.3);
+  --green: #00d68f;
+  --green-bg: rgba(0,214,143,0.12);
+  --red: #ff4757;
+  --red-bg: rgba(255,71,87,0.12);
+  --yellow: #ffd32a;
+  --yellow-bg: rgba(255,211,42,0.12);
+  --orange: #ff6b35;
+  --blue: #00a8ff;
+  --shadow: 0 8px 32px rgba(0,0,0,0.5);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+  --font-main: 'Segoe UI', 'Tahoma', sans-serif;
+}
+.light-mode {
+  --bg-primary: #f0f0f8;
+  --bg-secondary: #e8e8f5;
+  --bg-card: #ffffff;
+  --bg-input: #f5f5ff;
+  --border: #d0d0e8;
+  --border-light: #c0c0d8;
+  --text-primary: #1a1a2e;
+  --text-secondary: #4a4a6a;
+  --text-muted: #8888aa;
+  --shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: var(--font-main); background: var(--bg-primary); color: var(--text-primary); min-height:100vh; transition: background 0.3s, color 0.3s; }
+::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: var(--bg-secondary); } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ===== UTILITY ===== */
+.hidden { display: none !important; }
+.flex { display: flex; } .flex-col { flex-direction: column; } .items-center { align-items: center; } .justify-center { justify-content: center; } .justify-between { justify-content: space-between; } .gap-1 { gap: 8px; } .gap-2 { gap: 16px; } .gap-3 { gap: 24px; }
+.w-full { width: 100%; } .text-center { text-align: center; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border: none; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-family: var(--font-main); font-weight: 600; transition: var(--transition); white-space: nowrap; }
+.btn-primary { background: var(--accent); color: #fff; } .btn-primary:hover { background: var(--accent-hover); box-shadow: 0 0 20px var(--accent-glow); }
+.btn-success { background: var(--green); color: #000; } .btn-success:hover { filter: brightness(1.1); }
+.btn-danger { background: var(--red); color: #fff; } .btn-danger:hover { filter: brightness(1.1); }
+.btn-warning { background: var(--yellow); color: #000; } .btn-warning:hover { filter: brightness(1.1); }
+.btn-ghost { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); } .btn-ghost:hover { background: var(--bg-input); color: var(--text-primary); }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+.input { width:100%; padding: 10px 14px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-family: var(--font-main); font-size: 14px; transition: var(--transition); outline: none; }
+.input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+.input::placeholder { color: var(--text-muted); }
+.select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239090b0' stroke-width='2' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: left 12px center; }
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.badge-green { background: var(--green-bg); color: var(--green); } .badge-red { background: var(--red-bg); color: var(--red); } .badge-yellow { background: var(--yellow-bg); color: var(--yellow); }
+.stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; display: flex; align-items: center; gap: 16px; }
+.stat-icon { width: 48px; height: 48px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+table { width: 100%; border-collapse: collapse; } th, td { padding: 12px 16px; text-align: right; border-bottom: 1px solid var(--border); font-size: 13px; } th { background: var(--bg-input); color: var(--text-secondary); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; } tr:hover td { background: var(--bg-input); }
+.section-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+/* ===== TOAST NOTIFICATIONS ===== */
+#toast-container { position: fixed; top: 20px; left: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+.toast { padding: 14px 20px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px; animation: slideIn 0.3s ease; min-width: 280px; box-shadow: var(--shadow); }
+.toast-success { background: var(--green); color: #000; } .toast-error { background: var(--red); color: #fff; } .toast-info { background: var(--accent); color: #fff; } .toast-warning { background: var(--yellow); color: #000; }
+@keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(-100%); opacity: 0; } }
+
+/* ===== MODAL ===== */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
+.modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; animation: modalIn 0.25s ease; }
+.modal-lg { max-width: 900px; }
+@keyframes modalIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.modal-title { font-size: 18px; font-weight: 700; }
+.modal-body { padding: 24px; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+.close-btn { width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--bg-input); color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition); }
+.close-btn:hover { background: var(--red); color: #fff; }
+.form-group { margin-bottom: 16px; } .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* ===== LOGIN PAGE ===== */
+#login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at 50% 0%, rgba(108,99,255,0.15) 0%, transparent 60%); }
+.login-card { width: 100%; max-width: 420px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 48px 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+.login-logo { text-align: center; margin-bottom: 32px; }
+.login-logo .icon { font-size: 48px; background: linear-gradient(135deg, var(--accent), #ff6b9d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.login-logo h1 { font-size: 24px; font-weight: 800; margin-top: 8px; }
+.login-logo p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+#clock-display { text-align: center; background: var(--bg-input); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 24px; }
+#clock-display .time { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--accent); }
+#clock-display .date { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+/* ===== APP LAYOUT ===== */
+#app { display: none; height: 100vh; overflow: hidden; flex-direction: column; }
+.app-header { background: var(--bg-secondary); border-bottom: 1px solid var(--border); padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.app-logo { font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+.app-logo .logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--accent), #ff6b9d); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.header-actions { display: flex; align-items: center; gap: 12px; }
+.header-user { display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border); font-size: 13px; font-weight: 600; }
+.user-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; }
+.header-clock { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text-secondary); }
+.icon-btn { width: 36px; height: 36px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-card); color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition); font-size: 14px; }
+.icon-btn:hover { background: var(--bg-input); color: var(--text-primary); }
+
+/* ===== CASHIER LAYOUT ===== */
+#cashier-view { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+.cashier-header { padding: 20px 24px 0; }
+.cashier-header h2 { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+.cashier-header p { font-size: 13px; color: var(--text-muted); }
+.devices-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; }
+.device-card { background: var(--bg-card); border: 2px solid var(--border); border-radius: var(--radius); padding: 20px; cursor: pointer; transition: var(--transition); position: relative; overflow: hidden; }
+.device-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, transparent, rgba(255,255,255,0.03)); }
+.device-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
+.device-card.available { border-color: var(--green); }
+.device-card.available:hover { box-shadow: 0 0 20px rgba(0,214,143,0.2); }
+.device-card.busy { border-color: var(--red); }
+.device-card.busy:hover { box-shadow: 0 0 20px rgba(255,71,87,0.2); }
+.device-card.reserved { border-color: var(--yellow); }
+.device-card .device-num { font-size: 36px; font-weight: 900; color: var(--text-primary); margin-bottom: 8px; }
+.device-card .device-name { font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; }
+.device-card .device-status { font-size: 12px; font-weight: 700; }
+.device-card.available .device-status { color: var(--green); }
+.device-card.busy .device-status { color: var(--red); }
+.device-card.reserved .device-status { color: var(--yellow); }
+.device-card .session-info { margin-top: 10px; font-size: 11px; color: var(--text-muted); }
+.device-card .session-timer { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--accent); margin-top: 4px; }
+.device-card.busy .device-icon { color: var(--red); } .device-card.available .device-icon { color: var(--green); }
+.device-icon { font-size: 28px; margin-bottom: 8px; }
+
+/* ===== SESSION MODAL ===== */
+.session-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media(max-width:700px) { .session-grid { grid-template-columns: 1fr; } }
+.session-left { display: flex; flex-direction: column; gap: 16px; }
+.session-right { display: flex; flex-direction: column; gap: 16px; }
+.timer-display { background: var(--bg-input); border-radius: var(--radius); padding: 20px; text-align: center; }
+.timer-display .big-time { font-size: 48px; font-weight: 900; font-variant-numeric: tabular-nums; color: var(--accent); line-height: 1; }
+.timer-display .timer-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+.duration-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.dur-btn { padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-input); color: var(--text-secondary); cursor: pointer; font-size: 12px; font-weight: 600; transition: var(--transition); text-align: center; }
+.dur-btn:hover, .dur-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.session-controls { display: flex; gap: 8px; }
+.session-controls .btn { flex: 1; justify-content: center; }
+.orders-section { background: var(--bg-input); border-radius: var(--radius); padding: 16px; }
+.order-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.order-item:last-child { border-bottom: none; }
+.order-item .name { flex: 1; font-weight: 600; }
+.order-item .qty-ctrl { display: flex; align-items: center; gap: 6px; }
+.qty-btn { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; transition: var(--transition); }
+.qty-btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+.quick-products { display: flex; flex-wrap: wrap; gap: 6px; }
+.quick-prod-btn { padding: 6px 12px; border: 1px solid var(--border); border-radius: 20px; background: var(--bg-input); color: var(--text-secondary); cursor: pointer; font-size: 12px; font-weight: 600; transition: var(--transition); }
+.quick-prod-btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+.bill-summary { background: linear-gradient(135deg, rgba(108,99,255,0.1), rgba(108,99,255,0.05)); border: 1px solid rgba(108,99,255,0.2); border-radius: var(--radius); padding: 16px; }
+.bill-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13px; }
+.bill-row.total { font-size: 16px; font-weight: 800; color: var(--accent); border-top: 1px solid var(--border); padding-top: 10px; margin-top: 6px; }
+
+/* ===== ADMIN LAYOUT ===== */
+#admin-view { flex: 1; display: flex; overflow: hidden; }
+.admin-sidebar { width: 220px; background: var(--bg-secondary); border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
+.sidebar-nav { padding: 16px 12px; flex: 1; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition); font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
+.nav-item:hover { background: var(--bg-card); color: var(--text-primary); }
+.nav-item.active { background: rgba(108,99,255,0.15); color: var(--accent); border: 1px solid rgba(108,99,255,0.2); }
+.nav-item i { width: 18px; text-align: center; }
+.admin-content { flex: 1; overflow-y: auto; padding: 24px; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ===== STATS OVERVIEW ===== */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+@media(max-width:900px) { .stats-grid { grid-template-columns: 1fr 1fr; } .grid-4 { grid-template-columns: 1fr 1fr; } }
+
+/* ===== PRODUCTS GRID ===== */
+.products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+.product-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; transition: var(--transition); }
+.product-card:hover { border-color: var(--accent); }
+.product-card .p-name { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+.product-card .p-cat { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; }
+.product-card .p-price { font-size: 20px; font-weight: 900; color: var(--accent); margin-bottom: 8px; }
+.product-card .p-stock { font-size: 12px; color: var(--text-secondary); }
+.product-card .p-actions { display: flex; gap: 6px; margin-top: 12px; }
+
+/* ===== INVENTORY ===== */
+.inv-low { color: var(--red); font-weight: 700; }
+.inv-ok { color: var(--green); }
+.inv-mid { color: var(--yellow); }
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:600px) {
+  .form-row { grid-template-columns: 1fr; }
+  .admin-sidebar { width: 60px; }
+  .nav-item span { display: none; }
+  .admin-content { padding: 16px; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .devices-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ===== CUSTOM SCROLLBAR FOR MODAL ===== */
+.modal::-webkit-scrollbar { width: 4px; }
+.orders-list { max-height: 200px; overflow-y: auto; }
+.search-dropdown { position: relative; }
+.dropdown-list { position: absolute; top: 100%; right: 0; left: 0; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); z-index: 100; max-height: 200px; overflow-y: auto; }
+.dropdown-item { padding: 10px 14px; cursor: pointer; font-size: 13px; transition: var(--transition); display: flex; justify-content: space-between; align-items: center; }
+.dropdown-item:hover { background: var(--bg-input); }
+
+/* ===== SHIFT INDICATOR ===== */
+.shift-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.shift-in { background: var(--green-bg); color: var(--green); }
+.shift-out { background: var(--red-bg); color: var(--red); }
+
+/* ===== ACTIVE SESSION PULSE ===== */
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+.pulse { animation: pulse 2s infinite; }
+</style>
+</head>
+<body>
+<!-- Loading overlay — shown while fetching data from server -->
+<div id="loading-overlay" style="display:none;position:fixed;inset:0;background:#0a0a1a;z-index:99999;flex-direction:column;align-items:center;justify-content:center;gap:18px;">
+  <div style="font-size:48px;">🎮</div>
+  <div style="font-size:18px;font-weight:700;color:#fff;">جاري تحميل البيانات...</div>
+  <div style="width:200px;height:4px;background:#1e1e2e;border-radius:4px;overflow:hidden;">
+    <div style="height:100%;background:linear-gradient(90deg,#6c63ff,#00d68f);border-radius:4px;animation:loadbar 1.2s ease-in-out infinite;"></div>
+  </div>
+  <div style="font-size:12px;color:#555;">يتصل بـ server.js على المنفذ 3000</div>
+</div>
+<style>@keyframes loadbar{0%{width:0%;margin-left:0}50%{width:80%;margin-left:10%}100%{width:0%;margin-left:100%}}</style>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<!-- ==================== LOGIN PAGE ==================== -->
+<div id="login-page">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="icon"><i class="fas fa-gamepad"></i></div>
+      <h1>GameZone Manager</h1>
+      <p>نظام إدارة محل بلاي ستيشن</p>
+    </div>
+    <div id="clock-display">
+      <div class="time" id="login-clock">00:00:00</div>
+      <div class="date" id="login-date"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">اسم المستخدم</label>
+      <input type="text" id="login-username" class="input" placeholder="أدخل اسم المستخدم" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label class="form-label">كلمة المرور</label>
+      <input type="password" id="login-password" class="input" placeholder="أدخل كلمة المرور">
+    </div>
+    <button class="btn btn-primary w-full" style="justify-content:center;padding:14px;font-size:16px;" onclick="doLogin()">
+      <i class="fas fa-right-to-bracket"></i> تسجيل الدخول
+    </button>
+    <p style="text-align:center;margin-top:16px;font-size:11px;color:var(--text-muted);">
+      مدير: admin / 1234 &nbsp;|&nbsp; كاشير: cashier / 1234
+    </p>
+  </div>
+</div>
+
+<!-- ==================== MAIN APP ==================== -->
+<div id="app" class="flex flex-col">
+  <!-- Header -->
+  <header class="app-header">
+    <div class="app-logo">
+      <div class="logo-icon"><i class="fas fa-gamepad"></i></div>
+      <span id="header-title">GameZone</span>
+    </div>
+    <div class="header-actions">
+      <span class="header-clock" id="app-clock"></span>
+      <div class="header-user">
+        <div class="user-avatar" id="user-avatar">M</div>
+        <span id="user-name">مدير</span>
+        <span class="shift-badge shift-in" id="shift-status">داخل</span>
+      </div>
+      <button class="icon-btn" onclick="toggleTheme()" title="تبديل المظهر"><i class="fas fa-moon" id="theme-icon"></i></button>
+      <button class="btn btn-sm" style="background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow);" onclick="openCloseShiftModal()"><i class="fas fa-lock"></i> قفل الشيفت</button>
+      <button class="btn btn-danger btn-sm" onclick="doLogout()"><i class="fas fa-right-from-bracket"></i> خروج</button>
+    </div>
+  </header>
+
+  <!-- CASHIER VIEW -->
+  <div id="cashier-view" class="hidden" style="flex:1;overflow-y:auto;">
+
+    <!-- DEVICES SECTION -->
+    <div style="padding:16px 20px 8px;">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 style="font-size:17px;font-weight:800;"><i class="fas fa-desktop" style="color:var(--accent)"></i> الأجهزة</h2>
+          <p id="devices-subtitle" style="font-size:12px;color:var(--text-muted);margin-top:2px;">جاري التحميل...</p>
+        </div>
+        <div class="flex gap-1">
+          <span class="badge badge-green"><i class="fas fa-circle"></i> <span id="avail-count">0</span> متاح</span>
+          <span class="badge badge-red"><i class="fas fa-circle"></i> <span id="busy-count">0</span> مشغول</span>
+        </div>
+      </div>
+    </div>
+    <div class="devices-grid" id="devices-grid" style="padding:0 20px 16px;"></div>
+
+    <!-- DIVIDER -->
+    <div style="border-top:2px solid var(--border);margin:0 20px;"></div>
+
+    <!-- STANDALONE ORDERS SECTION -->
+    <div style="padding:16px 20px 24px;">
+      <div style="font-size:17px;font-weight:800;display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+        <i class="fas fa-mug-hot" style="color:var(--accent)"></i> طلبات مباشرة
+        <span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-right:4px;">مشروبات وأكل بدون جهاز</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 320px;gap:20px;">
+
+        <!-- Left: add items -->
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <!-- Quick buttons -->
+          <div class="card" style="padding:14px;">
+            <div class="form-label" style="margin-bottom:8px;">اختيار سريع</div>
+            <div id="standalone-quick-btns" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+            <div style="border-top:1px solid var(--border);margin-top:12px;padding-top:12px;">
+              <div class="form-label" style="margin-bottom:6px;">بحث عن منتج</div>
+              <div class="search-dropdown">
+                <input type="text" id="standalone-search" class="input" placeholder="اكتب اسم المنتج..." oninput="standaloneSearch(this.value)" autocomplete="off">
+                <div class="dropdown-list hidden" id="standalone-dropdown"></div>
+              </div>
+              <div class="flex gap-1" style="margin-top:8px;">
+                <input type="number" id="standalone-qty" class="input" value="1" min="1" style="width:80px;text-align:center;">
+                <button class="btn btn-primary" onclick="addStandaloneProduct()" style="flex:1;justify-content:center;"><i class="fas fa-plus"></i> إضافة للطلب</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: cart + checkout -->
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <!-- Cart -->
+          <div class="card" style="padding:14px;">
+            <div class="form-label" style="margin-bottom:8px;">قائمة الطلبات (<span id="standalone-count">0</span>)</div>
+            <div id="standalone-orders-list" style="max-height:200px;overflow-y:auto;">
+              <div style="text-align:center;color:var(--text-muted);padding:16px;font-size:12px;">لا توجد طلبات</div>
+            </div>
+          </div>
+          <!-- Bill + actions -->
+          <div style="background:linear-gradient(135deg,rgba(108,99,255,0.1),rgba(108,99,255,0.05));border:1px solid rgba(108,99,255,0.2);border-radius:var(--radius);padding:14px;">
+            <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;color:var(--text-secondary);">
+              <span>عدد الأصناف</span><span id="standalone-items-count">0</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:800;color:var(--accent);border-top:1px solid var(--border);padding-top:10px;margin-top:6px;">
+              <span>الإجمالي</span><span id="standalone-total">0 ج.م</span>
+            </div>
+          </div>
+          <button class="btn btn-success w-full" onclick="checkoutStandalone()" style="justify-content:center;padding:13px;font-size:14px;">
+            <i class="fas fa-cash-register"></i> تسجيل الدفع
+          </button>
+          <button class="btn btn-ghost btn-sm w-full" onclick="clearStandaloneOrders()" style="justify-content:center;">
+            <i class="fas fa-trash-can"></i> مسح الطلبات
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ADMIN VIEW -->
+  <div id="admin-view" class="hidden">
+    <nav class="admin-sidebar">
+      <div class="sidebar-nav">
+        <div class="nav-item active" onclick="switchTab('tab-overview')" data-tab="tab-overview"><i class="fas fa-chart-pie"></i><span>نظرة عامة</span></div>
+        <div class="nav-item" onclick="switchTab('tab-devices')" data-tab="tab-devices"><i class="fas fa-desktop"></i><span>الأجهزة</span></div>
+        <div class="nav-item" onclick="switchTab('tab-products')" data-tab="tab-products"><i class="fas fa-box-open"></i><span>المنتجات</span></div>
+        <div class="nav-item" onclick="switchTab('tab-inventory')" data-tab="tab-inventory"><i class="fas fa-warehouse"></i><span>المخزون</span></div>
+        <div class="nav-item" onclick="switchTab('tab-reports')" data-tab="tab-reports"><i class="fas fa-chart-column"></i><span>التقارير</span></div>
+        <div class="nav-item" onclick="switchTab('tab-staff')" data-tab="tab-staff"><i class="fas fa-users"></i><span>الموظفون</span></div>
+        <div class="nav-item" onclick="switchTab('tab-advances')" data-tab="tab-advances"><i class="fas fa-hand-holding-dollar"></i><span>السلف</span></div>
+        <div class="nav-item" onclick="switchTab('tab-settings')" data-tab="tab-settings"><i class="fas fa-gear"></i><span>الإعدادات</span></div>
+      </div>
+    </nav>
+    <div class="admin-content" id="admin-content">
+      <!-- Overview -->
+      <div class="tab-panel active" id="tab-overview">
+        <div class="section-title"><i class="fas fa-chart-pie" style="color:var(--accent)"></i> لوحة التحكم</div>
+        <div class="stats-grid" id="overview-stats"></div>
+        <div class="grid-2" style="margin-top:20px;">
+          <div class="card">
+            <div class="section-title" style="font-size:15px;"><i class="fas fa-desktop"></i> الأجهزة النشطة</div>
+            <div id="active-sessions-list"></div>
+          </div>
+          <div class="card">
+            <div class="section-title" style="font-size:15px;"><i class="fas fa-arrow-trend-up"></i> إيرادات اليوم</div>
+            <canvas id="revenue-chart" height="180"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Devices Tab -->
+      <div class="tab-panel" id="tab-devices">
+        <div class="flex justify-between items-center" style="margin-bottom:16px;">
+          <div class="section-title"><i class="fas fa-desktop" style="color:var(--accent)"></i> إدارة الأجهزة</div>
+          <button class="btn btn-primary btn-sm" onclick="openAddDeviceModal()"><i class="fas fa-plus"></i> إضافة جهاز</button>
+        </div>
+        <div class="card"><table id="devices-table"><thead><tr><th>رقم</th><th>الاسم</th><th>الحالة</th><th>سعر الفردي/س</th><th>سعر الجماعي/س</th><th>الجلسات</th><th>الإيراد</th><th>إجراءات</th></tr></thead><tbody id="devices-tbody"></tbody></table></div>
+      </div>
+
+      <!-- Products Tab -->
+      <div class="tab-panel" id="tab-products">
+        <div class="flex justify-between items-center" style="margin-bottom:16px;">
+          <div class="section-title"><i class="fas fa-box-open" style="color:var(--accent)"></i> المنتجات</div>
+          <button class="btn btn-primary btn-sm" onclick="openAddProductModal()"><i class="fas fa-plus"></i> إضافة منتج</button>
+        </div>
+        <div class="flex gap-1" style="margin-bottom:16px;">
+          <button class="btn btn-ghost btn-sm active-filter" onclick="filterProducts('all')" id="filter-all">الكل</button>
+          <button class="btn btn-ghost btn-sm" onclick="filterProducts('مشروب')" id="filter-drink">مشروبات</button>
+          <button class="btn btn-ghost btn-sm" onclick="filterProducts('أكل')" id="filter-food">أكل</button>
+        </div>
+        <div class="products-grid" id="products-grid"></div>
+      </div>
+
+      <!-- Inventory Tab -->
+      <div class="tab-panel" id="tab-inventory">
+        <div class="section-title"><i class="fas fa-warehouse" style="color:var(--accent)"></i> المخزون</div>
+        <div id="low-stock-alert" class="hidden" style="background:var(--red-bg);border:1px solid var(--red);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--red);font-weight:600;"></div>
+        <div class="card"><table><thead><tr><th>المنتج</th><th>الفئة</th><th>الكمية الحالية</th><th>الحالة</th><th>آخر تحديث</th><th>إجراءات</th></tr></thead><tbody id="inventory-tbody"></tbody></table></div>
+      </div>
+
+      <!-- Reports Tab -->
+      <div class="tab-panel" id="tab-reports">
+        <div class="section-title"><i class="fas fa-chart-column" style="color:var(--accent)"></i> التقارير</div>
+        <div class="card" style="margin-bottom:20px;">
+          <div class="flex gap-2 items-center flex-wrap">
+            <div class="form-group" style="margin:0;">
+              <select class="input select" id="report-period" onchange="loadReports()" style="width:auto;">
+                <option value="today">اليوم</option>
+                <option value="week">هذا الأسبوع</option>
+                <option value="month" selected>هذا الشهر</option>
+                <option value="custom">مخصص</option>
+              </select>
+            </div>
+            <input type="date" id="report-from" class="input" style="width:auto;display:none;">
+            <input type="date" id="report-to" class="input" style="width:auto;display:none;">
+            <button class="btn btn-primary btn-sm" onclick="loadReports()"><i class="fas fa-arrows-rotate"></i> تحديث</button>
+            <button class="btn btn-success btn-sm" onclick="exportCSV()"><i class="fas fa-file-excel"></i> تصدير إكسل</button>
+            <button class="btn btn-ghost btn-sm" onclick="window.print()"><i class="fas fa-print"></i> طباعة</button>
+          </div>
+        </div>
+        <div class="stats-grid" id="report-stats" style="grid-template-columns:repeat(3,1fr);"></div>
+        <div class="grid-2" style="margin-top:20px;">
+          <div class="card"><div class="section-title" style="font-size:15px;">استخدام الأجهزة</div><canvas id="devices-chart" height="200"></canvas></div>
+          <div class="card"><div class="section-title" style="font-size:15px;">مبيعات المنتجات</div><canvas id="products-chart" height="200"></canvas></div>
+        </div>
+        <div class="card" style="margin-top:20px;">
+          <div class="section-title" style="font-size:15px;">سجل الجلسات <span style="font-size:12px;color:var(--text-muted);font-weight:400;">— اضغط على أي جلسة لعرض التفاصيل الكاملة</span></div>
+          <table><thead><tr><th>الجهاز</th><th>الوضع</th><th>البداية</th><th>النهاية</th><th>المدة</th><th>وقت</th><th>طلبات</th><th>رصيد منقول</th><th>إجمالي</th><th></th></tr></thead><tbody id="sessions-report-tbody"></tbody></table>
+        </div>
+      </div>
+
+      <!-- Staff Tab -->
+      <div class="tab-panel" id="tab-staff">
+        <div class="flex justify-between items-center" style="margin-bottom:16px;">
+          <div class="section-title"><i class="fas fa-users" style="color:var(--accent)"></i> الموظفون</div>
+          <button class="btn btn-primary btn-sm" onclick="openAddStaffModal()"><i class="fas fa-plus"></i> إضافة موظف</button>
+        </div>
+        <div class="card" style="margin-bottom:20px;"><table><thead><tr><th>الاسم</th><th>الدور</th><th>الحالة</th><th>آخر دخول</th><th>ساعات اليوم</th><th>إجراءات</th></tr></thead><tbody id="staff-tbody"></tbody></table></div>
+        <div class="section-title" style="font-size:15px;"><i class="fas fa-clock-rotate-left"></i> سجل الدخول/الخروج</div>
+        <div class="card"><table><thead><tr><th>الموظف</th><th>وقت الدخول</th><th>وقت الخروج</th><th>المدة</th></tr></thead><tbody id="login-log-tbody"></tbody></table></div>
+      </div>
+
+      <!-- Advances Tab -->
+      <div class="tab-panel" id="tab-advances">
+        <div class="flex justify-between items-center" style="margin-bottom:16px;">
+          <div class="section-title"><i class="fas fa-hand-holding-dollar" style="color:var(--accent)"></i> السلف</div>
+          <button class="btn btn-primary btn-sm" onclick="openAddAdvanceModal()"><i class="fas fa-plus"></i> إضافة سلفة</button>
+        </div>
+        <div class="stats-grid" id="advance-stats" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px;"></div>
+        <div class="card"><table><thead><tr><th>الموظف</th><th>المبلغ</th><th>التاريخ</th><th>السبب</th><th>الحالة</th><th>إجراءات</th></tr></thead><tbody id="advances-tbody"></tbody></table></div>
+      </div>
+
+      <!-- Settings Tab -->
+      <div class="tab-panel" id="tab-settings">
+        <div class="section-title"><i class="fas fa-gear" style="color:var(--accent)"></i> الإعدادات</div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="section-title" style="font-size:15px;">معلومات المحل</div>
+            <div class="form-group"><label class="form-label">اسم المحل</label><input type="text" id="shop-name" class="input" placeholder="GameZone"></div>
+            <div class="form-group"><label class="form-label">الحد الأدنى للمخزون (تنبيه)</label><input type="number" id="low-stock-threshold" class="input" value="5"></div>
+            <div class="form-group"><label class="form-label">العملة</label><input type="text" id="currency-symbol" class="input" value="ج.م"></div>
+            <!-- Day/Night hours -->
+            <div style="margin:12px 0 6px;padding:8px 12px;background:var(--bg);border-radius:8px;border:1px solid var(--border);">
+              <div style="font-weight:700;font-size:13px;margin-bottom:8px;color:var(--accent);">
+                <i class="fas fa-clock"></i> التسعير الزمني
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:var(--text-muted);margin-bottom:6px;text-align:center;">
+                <span>🌞 نهار (6 ص – 6 م)</span>
+                <span>🌙 ليل (6 م – 6 ص)</span>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px;">
+                <div><label class="form-label" style="font-size:11px;">👤 فردي نهار</label><input type="number" id="setting-single-day" class="input" placeholder="20"></div>
+                <div><label class="form-label" style="font-size:11px;">👤 فردي ليل</label><input type="number" id="setting-single-night" class="input" placeholder="25"></div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div><label class="form-label" style="font-size:11px;">👥 جماعي نهار</label><input type="number" id="setting-multi-day" class="input" placeholder="30"></div>
+                <div><label class="form-label" style="font-size:11px;">👥 جماعي ليل</label><input type="number" id="setting-multi-night" class="input" placeholder="40"></div>
+              </div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:8px;"><i class="fas fa-info-circle"></i> هذه الأسعار الافتراضية — كل جهاز له سعره الخاص في "إدارة الأجهزة"</div>
+            </div>
+            <button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-floppy-disk"></i> حفظ الإعدادات</button>
+          </div>
+          <div class="card">
+            <div class="section-title" style="font-size:15px;">النسخ الاحتياطي</div>
+            <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">صدّر واستورد بيانات النظام بالكامل</p>
+            <div class="flex flex-col gap-2">
+              <button class="btn btn-success w-full" onclick="exportData()" style="justify-content:center;"><i class="fas fa-download"></i> تصدير البيانات (JSON)</button>
+              <label class="btn btn-ghost w-full" style="justify-content:center;cursor:pointer;"><i class="fas fa-upload"></i> استيراد البيانات<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
+              <button class="btn btn-warning w-full" onclick="clearTodayData()" style="justify-content:center;"><i class="fas fa-broom"></i> مسح بيانات اليوم</button>
+              <button class="btn btn-danger w-full" onclick="resetAllData()" style="justify-content:center;"><i class="fas fa-trash-can"></i> مسح جميع البيانات</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MODALS ==================== -->
+
+<!-- Device Session Modal -->
+<div class="modal-overlay hidden" id="session-modal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fas fa-gamepad" style="color:var(--accent)"></i> <span id="modal-device-title">جهاز 1</span></div>
+      <button class="close-btn" onclick="closeModal('session-modal')"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="session-grid">
+        <div class="session-left">
+          <!-- Timer -->
+          <div class="timer-display">
+            <div class="big-time" id="session-timer-display">00:00:00</div>
+            <div class="timer-label" id="timer-label">في انتظار البدء</div>
+          </div>
+          <!-- Play Mode -->
+          <div id="mode-selector" style="display:flex;gap:8px;margin-bottom:2px;">
+            <button id="mode-single" onclick="setPlayMode('single')" class="btn w-full" style="flex:1;justify-content:center;background:var(--accent);color:#fff;border:2px solid var(--accent);padding:9px;">
+              <i class="fas fa-user"></i> فردي
+            </button>
+            <button id="mode-multi" onclick="setPlayMode('multi')" class="btn w-full" style="flex:1;justify-content:center;background:var(--bg-input);color:var(--text-secondary);border:2px solid var(--border);padding:9px;">
+              <i class="fas fa-users"></i> جماعي
+            </button>
+          </div>
+          <!-- Controls -->
+          <div class="session-controls">
+            <button class="btn btn-success" id="btn-start" onclick="startSession()"><i class="fas fa-play"></i> بدء</button>
+            <button class="btn btn-danger" id="btn-stop" onclick="stopSession()" disabled><i class="fas fa-stop"></i> إنهاء</button>
+            <button class="btn btn-warning btn-sm" id="btn-reset" onclick="resetSession()" disabled><i class="fas fa-rotate-left"></i></button>
+            <button class="btn btn-sm" id="btn-transfer" onclick="openTransferModal()" disabled title="نقل لجهاز آخر" style="background:var(--blue);color:#fff;"><i class="fas fa-right-left"></i></button>
+          </div>
+          <!-- Duration -->
+          <div class="card" style="padding:14px;">
+            <div class="form-label" style="margin-bottom:8px;">نوع المدة</div>
+            <div class="duration-btns">
+              <div class="dur-btn" onclick="setDuration(30)">30 د</div>
+              <div class="dur-btn" onclick="setDuration(60)">1 س</div>
+              <div class="dur-btn" onclick="setDuration(120)">2 س</div>
+              <div class="dur-btn" onclick="setDuration(180)">3 س</div>
+              <div class="dur-btn active" onclick="setDuration(0)">مفتوح</div>
+              <div class="dur-btn" onclick="openCustomDuration()">مخصص</div>
+            </div>
+            <div class="flex gap-1 items-center" id="custom-duration-row" style="margin-top:8px;display:none!important;">
+              <input type="number" id="custom-minutes" class="input" placeholder="دقائق" style="width:100px;">
+              <button class="btn btn-primary btn-sm" onclick="applyCustomDuration()">تطبيق</button>
+            </div>
+          </div>
+          <!-- Bill Summary -->
+          <div class="bill-summary">
+            <div class="bill-row"><span>سعر الفردي/الجماعي</span><span id="device-price-display">-- ج.م</span></div>
+            <div class="bill-row"><span>وضع اللعب</span><span id="play-mode-display" style="font-weight:700;">—</span></div>
+            <div class="bill-row hidden" id="transfer-from-row"><span>منقول من</span><span id="transfer-from-display" style="color:var(--blue);font-weight:700;">—</span></div>
+            <div class="bill-row hidden" id="prev-cost-row"><span id="prev-cost-label">رصيد سابق</span><span id="prev-cost-display" style="color:var(--orange);font-weight:700;">0 ج.م</span></div>
+            <!-- Segments breakdown -->
+            <div id="segments-breakdown" style="display:none;margin:6px 0;border-top:1px dashed var(--border);padding-top:6px;">
+              <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;font-weight:700;">تفصيل الجلسات:</div>
+              <div id="segments-rows"></div>
+            </div>
+            <div class="bill-row" style="border-top:1px dashed var(--border);margin-top:4px;padding-top:4px;"><span>تكلفة الوقت</span><span id="time-cost">0 ج.م</span></div>
+            <div class="bill-row"><span>تكلفة الطلبات</span><span id="orders-cost">0 ج.م</span></div>
+            <div class="bill-row"><span>وقت البداية</span><span id="start-time-display">--:--</span></div>
+            <!-- Discount row -->
+            <div class="bill-row" style="align-items:center;gap:6px;">
+              <span style="white-space:nowrap;">خصم (ج.م)</span>
+              <input type="number" id="discount-input" min="0" step="1" placeholder="0"
+                style="width:80px;padding:3px 7px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;text-align:center;"
+                oninput="applyDiscount()" value="0">
+              <span id="discount-display" style="color:var(--red);font-weight:700;margin-right:auto;">— 0 ج.م</span>
+            </div>
+            <div class="bill-row total"><span>الإجمالي</span><span id="total-cost">0 ج.م</span></div>
+          </div>
+        </div>
+        <div class="session-right">
+          <!-- Quick Products -->
+          <div class="card" style="padding:14px;">
+            <div class="form-label" style="margin-bottom:8px;">إضافة طلب سريع</div>
+            <div class="quick-products" id="quick-products"></div>
+            <div class="search-dropdown" style="margin-top:10px;">
+              <input type="text" id="product-search" class="input" placeholder="بحث عن منتج..." oninput="searchProducts(this.value)" autocomplete="off">
+              <div class="dropdown-list hidden" id="product-dropdown"></div>
+            </div>
+            <div class="flex gap-1" style="margin-top:8px;">
+              <input type="number" id="product-qty" class="input" value="1" min="1" style="width:80px;">
+              <button class="btn btn-primary btn-sm" onclick="addSelectedProduct()" style="flex:1;justify-content:center;"><i class="fas fa-plus"></i> إضافة</button>
+            </div>
+          </div>
+          <!-- Orders List -->
+          <div class="orders-section">
+            <div class="form-label" style="margin-bottom:8px;">الطلبات الحالية (<span id="orders-count">0</span>)</div>
+            <div class="orders-list" id="orders-list">
+              <div style="text-align:center;color:var(--text-muted);padding:20px;font-size:12px;">لا توجد طلبات</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Session Detail Modal -->
+<div class="modal-overlay hidden" id="session-detail-modal">
+  <div class="modal modal-lg" style="max-width:700px;">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fas fa-receipt" style="color:var(--accent)"></i> تفاصيل الجلسة</div>
+      <button class="close-btn" onclick="closeModal('session-detail-modal')"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" id="session-detail-body" style="max-height:75vh;overflow-y:auto;"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('session-detail-modal')">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<!-- Transfer Modal -->
+<div class="modal-overlay hidden" id="transfer-modal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fas fa-right-left" style="color:var(--blue)"></i> نقل الجلسة لجهاز آخر</div>
+      <button class="close-btn" onclick="closeModal('transfer-modal')"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div style="background:var(--bg-input);border-radius:var(--radius-sm);padding:14px;margin-bottom:16px;font-size:13px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+          <span style="color:var(--text-muted);">الجهاز الحالي</span>
+          <span id="transfer-from-name" style="font-weight:700;"></span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+          <span style="color:var(--text-muted);">المبلغ المتراكم حتى الآن</span>
+          <span id="transfer-current-total" style="font-weight:700;color:var(--accent);"></span>
+        </div>
+        <div style="display:flex;justify-content:space-between;">
+          <span style="color:var(--text-muted);">عدد الطلبات</span>
+          <span id="transfer-orders-count" style="font-weight:700;"></span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">اختر الجهاز المراد النقل إليه</label>
+        <select id="transfer-target-device" class="input select"></select>
+      </div>
+      <div style="background:rgba(0,168,255,0.1);border:1px solid rgba(0,168,255,0.3);border-radius:var(--radius-sm);padding:12px;font-size:12px;color:var(--blue);line-height:1.6;">
+        <i class="fas fa-circle-info"></i>
+        سيتم نقل جميع الطلبات والمبلغ المتراكم إلى الجهاز الجديد. الجهاز الحالي سيتحرر تلقائياً وتُحفظ بيانات الجلسة بالكامل في سجل واحد عند الإنهاء.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('transfer-modal')">إلغاء</button>
+      <button class="btn" style="background:var(--blue);color:#fff;" onclick="executeTransfer()">
+        <i class="fas fa-right-left"></i> تأكيد النقل
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Device Modal -->
+<div class="modal-overlay hidden" id="add-device-modal">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header"><div class="modal-title">إضافة/تعديل جهاز</div><button class="close-btn" onclick="closeModal('add-device-modal')"><i class="fas fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="device-edit-id">
+      <div class="form-group"><label class="form-label">رقم الجهاز</label><input type="number" id="device-num" class="input" placeholder="1"></div>
+      <div class="form-group"><label class="form-label">اسم/وصف</label><input type="text" id="device-name-input" class="input" placeholder="بلاي ستيشن 4"></div>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:10px;">
+        <div style="font-size:12px;font-weight:700;margin-bottom:8px;">🌞 أسعار النهار (6 ص – 6 م)</div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label"><i class="fas fa-user" style="color:var(--accent)"></i> فردي/س</label><input type="number" id="device-single-price" class="input" placeholder="20" step="0.5" min="0"></div>
+          <div class="form-group"><label class="form-label"><i class="fas fa-users" style="color:var(--green)"></i> جماعي/س</label><input type="number" id="device-multi-price" class="input" placeholder="30" step="0.5" min="0"></div>
+        </div>
+        <div style="font-size:12px;font-weight:700;margin:8px 0;">🌙 أسعار الليل (6 م – 6 ص)</div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label"><i class="fas fa-user" style="color:var(--accent)"></i> فردي/س</label><input type="number" id="device-single-night-price" class="input" placeholder="25" step="0.5" min="0"></div>
+          <div class="form-group"><label class="form-label"><i class="fas fa-users" style="color:var(--green)"></i> جماعي/س</label><input type="number" id="device-multi-night-price" class="input" placeholder="40" step="0.5" min="0"></div>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">الحالة</label>
+        <select id="device-status" class="input select"><option value="available">متاح</option><option value="maintenance">صيانة</option></select>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('add-device-modal')">إلغاء</button><button class="btn btn-primary" onclick="saveDevice()"><i class="fas fa-floppy-disk"></i> حفظ</button></div>
+  </div>
+</div>
+
+<!-- Add Product Modal -->
+<div class="modal-overlay hidden" id="add-product-modal">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header"><div class="modal-title">إضافة/تعديل منتج</div><button class="close-btn" onclick="closeModal('add-product-modal')"><i class="fas fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="product-edit-id">
+      <div class="form-group"><label class="form-label">اسم المنتج</label><input type="text" id="product-name-input" class="input" placeholder="شاي"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">الفئة</label><select id="product-cat" class="input select"><option value="مشروب">مشروب</option><option value="أكل">أكل</option><option value="أخرى">أخرى</option></select></div>
+        <div class="form-group"><label class="form-label">السعر</label><input type="number" id="product-price" class="input" placeholder="10" step="0.5"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">المخزون الابتدائي</label><input type="number" id="product-stock" class="input" placeholder="50"></div>
+        <div class="form-group"><label class="form-label">الحالة</label><select id="product-available" class="input select"><option value="1">متاح</option><option value="0">غير متاح</option></select></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('add-product-modal')">إلغاء</button><button class="btn btn-primary" onclick="saveProduct()"><i class="fas fa-floppy-disk"></i> حفظ</button></div>
+  </div>
+</div>
+
+<!-- Add Staff Modal -->
+<div class="modal-overlay hidden" id="add-staff-modal">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header"><div class="modal-title">إضافة/تعديل موظف</div><button class="close-btn" onclick="closeModal('add-staff-modal')"><i class="fas fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="staff-edit-id">
+      <div class="form-group"><label class="form-label">الاسم</label><input type="text" id="staff-name-input" class="input" placeholder="اسم الموظف"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">اسم المستخدم</label><input type="text" id="staff-username" class="input" placeholder="username"></div>
+        <div class="form-group"><label class="form-label">كلمة المرور</label><input type="password" id="staff-password" class="input" placeholder="••••"></div>
+      </div>
+      <div class="form-group"><label class="form-label">الدور</label><select id="staff-role" class="input select"><option value="cashier">كاشير</option><option value="admin">مدير</option></select></div>
+      <div class="form-group"><label class="form-label">الراتب الشهري (اختياري)</label><input type="number" id="staff-salary" class="input" placeholder="3000"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('add-staff-modal')">إلغاء</button><button class="btn btn-primary" onclick="saveStaff()"><i class="fas fa-floppy-disk"></i> حفظ</button></div>
+  </div>
+</div>
+
+<!-- Add Advance Modal -->
+<div class="modal-overlay hidden" id="add-advance-modal">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header"><div class="modal-title">إضافة سلفة</div><button class="close-btn" onclick="closeModal('add-advance-modal')"><i class="fas fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">الموظف</label><select id="advance-staff" class="input select"></select></div>
+      <div class="form-group"><label class="form-label">المبلغ (ج.م)</label><input type="number" id="advance-amount" class="input" placeholder="500"></div>
+      <div class="form-group"><label class="form-label">السبب</label><input type="text" id="advance-reason" class="input" placeholder="ظروف شخصية"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('add-advance-modal')">إلغاء</button><button class="btn btn-primary" onclick="saveAdvance()"><i class="fas fa-floppy-disk"></i> حفظ</button></div>
+  </div>
+</div>
+
+<!-- Inventory Update Modal -->
+<div class="modal-overlay hidden" id="inventory-modal">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header"><div class="modal-title">تحديث المخزون</div><button class="close-btn" onclick="closeModal('inventory-modal')"><i class="fas fa-xmark"></i></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="inv-product-id">
+      <div class="form-group"><label class="form-label">المنتج</label><input type="text" id="inv-product-name" class="input" disabled></div>
+      <div class="form-group"><label class="form-label">الكمية الحالية</label><input type="number" id="inv-current" class="input" disabled></div>
+      <div class="form-group"><label class="form-label">الكمية الجديدة</label><input type="number" id="inv-new-qty" class="input" placeholder="0"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('inventory-modal')">إلغاء</button><button class="btn btn-primary" onclick="updateInventory()"><i class="fas fa-floppy-disk"></i> تحديث</button></div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal-overlay hidden" id="confirm-modal">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-header"><div class="modal-title"><i class="fas fa-triangle-exclamation" style="color:var(--yellow)"></i> تأكيد</div></div>
+    <div class="modal-body"><p id="confirm-message" style="font-size:15px;line-height:1.6;"></p></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('confirm-modal')">إلغاء</button><button class="btn btn-danger" id="confirm-ok-btn">تأكيد</button></div>
+  </div>
+</div>
+
+<!-- CLOSE SHIFT MODAL -->
+<div class="modal-overlay hidden" id="close-shift-modal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fas fa-lock" style="color:var(--yellow)"></i> قفل الشيفت</div>
+      <button class="icon-btn" onclick="closeModal('close-shift-modal')"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" id="close-shift-body" style="font-size:14px;line-height:2;">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('close-shift-modal')">إغلاق</button>
+      <button class="btn btn-primary" onclick="printShiftReport()"><i class="fas fa-print"></i> طباعة التقرير</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================================================================
+// CONFIGURATION
+// ===================================================================
+const CONFIG = {
+  hourPrice: 20,
+  currency: 'ج.م',
+  shopName: 'GameZone',
+  lowStockThreshold: 5,
+  sessionTimeout: 30 * 60 * 1000, // 30 min inactivity
+  autoSaveInterval: 5 * 60 * 1000,
+  // Peak hours: 6 AM – 6 PM (day), 6 PM – 6 AM (night)
+  dayStartHour: 6,   // 06:00
+  nightStartHour: 18, // 18:00
+};
+
+// ===================================================================
+// DATABASE (localStorage)
+// ===================================================================
+// ── DB: talks to server API instead of localStorage ──────────────────────────
+const DB = {
+  _cache: {},          // in-memory cache so reads are instant after first load
+  _dirty: new Set(),   // keys that need to be flushed
+
+  async load() {
+    // Pre-load all known keys in parallel on startup
+    const keys = ['devices','sessions','orders','products','staff','advances','settings','loginlog','seeded','pendingTransfers'];
+    await Promise.all(keys.map(k => this._fetch(k)));
+  },
+
+  async _fetch(key) {
+    try {
+      const r = await fetch(`/api/${key}`);
+      const val = await r.json();
+      this._cache[key] = val;
+      return val;
+    } catch { return null; }
+  },
+
+  get(key) {
+    // Synchronous read from cache
+    return this._cache[key] !== undefined ? this._cache[key] : null;
+  },
+
+  set(key, val) {
+    this._cache[key] = val;
+    // Fire-and-forget write to server
+    fetch(`/api/${key}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: val }),
+    }).catch(e => console.error('DB write error:', e));
+  },
+
+  remove(key) {
+    delete this._cache[key];
+    fetch(`/api/${key}`, { method: 'DELETE' }).catch(e => console.error('DB delete error:', e));
+  },
+
+  getDevices()        { return this.get('devices')         || []; },
+  setDevices(d)       { this.set('devices', d); },
+  getSessions()       { return this.get('sessions')        || []; },
+  setSessions(s)      { this.set('sessions', s); },
+  getOrders()         { return this.get('orders')          || []; },
+  setOrders(o)        { this.set('orders', o); },
+  getProducts()       { return this.get('products')        || []; },
+  setProducts(p)      { this.set('products', p); },
+  getStaff()          { return this.get('staff')           || []; },
+  setStaff(s)         { this.set('staff', s); },
+  getAdvances()       { return this.get('advances')        || []; },
+  setAdvances(a)      { this.set('advances', a); },
+  getSettings()       { return this.get('settings')        || {}; },
+  setSettings(s)      { this.set('settings', s); },
+  getLoginLog()       { return this.get('loginlog')        || []; },
+  setLoginLog(l)      { this.set('loginlog', l); },
+};
+
+// ===================================================================
+// INITIAL SEED DATA
+// ===================================================================
+function seedData() {
+  if (!DB.get('seeded')) {
+    DB.setStaff([
+      { id: 1, name: 'أحمد المدير', username: 'admin', password: '1234', role: 'admin', loggedIn: false, salary: 5000, loginTime: null, logoutTime: null },
+      { id: 2, name: 'محمد كاشير', username: 'cashier', password: '1234', role: 'cashier', loggedIn: false, salary: 3000, loginTime: null, logoutTime: null },
+    ]);
+    DB.setDevices([
+      { id: 1, num: 1, name: 'PS4 - جهاز 1', status: 'available', singlePrice: 20, multiPrice: 30, currentSession: null, totalSessions: 0, totalRevenue: 0 },
+      { id: 2, num: 2, name: 'PS4 - جهاز 2', status: 'available', singlePrice: 20, multiPrice: 30, currentSession: null, totalSessions: 0, totalRevenue: 0 },
+      { id: 3, num: 3, name: 'PS5 - جهاز 3', status: 'available', singlePrice: 30, multiPrice: 45, currentSession: null, totalSessions: 0, totalRevenue: 0 },
+      { id: 4, num: 4, name: 'PS5 - جهاز 4', status: 'available', singlePrice: 30, multiPrice: 45, currentSession: null, totalSessions: 0, totalRevenue: 0 },
+      { id: 5, num: 5, name: 'PS4 - جهاز 5', status: 'available', singlePrice: 20, multiPrice: 30, currentSession: null, totalSessions: 0, totalRevenue: 0 },
+    ]);
+    DB.setProducts([
+      { id: 1, name: 'شاي', category: 'مشروب', price: 5, stock: 100, available: 1 },
+      { id: 2, name: 'قهوة', category: 'مشروب', price: 7, stock: 80, available: 1 },
+      { id: 3, name: 'نسكافيه', category: 'مشروب', price: 8, stock: 60, available: 1 },
+      { id: 4, name: 'عصير', category: 'مشروب', price: 10, stock: 40, available: 1 },
+      { id: 5, name: 'مياه', category: 'مشروب', price: 3, stock: 200, available: 1 },
+      { id: 6, name: 'إندومي', category: 'أكل', price: 10, stock: 50, available: 1 },
+      { id: 7, name: 'سندوتش', category: 'أكل', price: 15, stock: 30, available: 1 },
+      { id: 8, name: 'شيبسي', category: 'أكل', price: 8, stock: 70, available: 1 },
+      { id: 9, name: 'شيكولاتة', category: 'أكل', price: 12, stock: 45, available: 1 },
+    ]);
+    DB.set('seeded', true);
+  }
+  // Load settings into CONFIG
+  const s = DB.getSettings();
+  if (s.hourPrice) CONFIG.hourPrice = s.hourPrice;
+  if (s.currency) CONFIG.currency = s.currency;
+  if (s.shopName) CONFIG.shopName = s.shopName;
+  if (s.lowStockThreshold) CONFIG.lowStockThreshold = s.lowStockThreshold;
+  if (s.defaultSingleDay) CONFIG.defaultSingleDay = s.defaultSingleDay;
+  if (s.defaultSingleNight) CONFIG.defaultSingleNight = s.defaultSingleNight;
+  if (s.defaultMultiDay) CONFIG.defaultMultiDay = s.defaultMultiDay;
+  if (s.defaultMultiNight) CONFIG.defaultMultiNight = s.defaultMultiNight;
+}
+
+// ===================================================================
+// STATE
+// ===================================================================
+let currentUser = null;
+let currentDeviceId = null;
+let sessionTimerInterval = null;
+let clockInterval = null;
+let selectedProductId = null;
+let selectedDuration = 0; // 0 = open
+let selectedPlayMode = 'single'; // 'single' | 'multi'
+let revenueChart = null;
+let devicesChart = null;
+let productsChart = null;
+let currentFilter = 'all';
+let inactivityTimer = null;
+const activeSessions = {}; // deviceId -> {startTime, duration, orders, timerId}
+const pendingTransfers = {}; // deviceId -> {prevCost, orders, transferredFrom, transferChain, duration}
+
+// ===================================================================
+// CLOCK
+// ===================================================================
+function startClock() {
+  function tick() {
+    const now = new Date();
+    const t = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+    const d = now.toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const lc = document.getElementById('login-clock');
+    const ld = document.getElementById('login-date');
+    const ac = document.getElementById('app-clock');
+    if (lc) lc.textContent = t;
+    if (ld) ld.textContent = d;
+    if (ac) ac.textContent = t;
+    // Update running session timers
+    Object.keys(activeSessions).forEach(did => {
+      const sess = activeSessions[did];
+      if (sess && sess.running) {
+        const elapsed = Math.floor((Date.now() - sess.startTime) / 1000);
+        updateDeviceCardTimer(parseInt(did), elapsed);
+        if (currentDeviceId === parseInt(did)) updateSessionModalTimer(elapsed, sess);
+      }
+    });
+  }
+  tick();
+  clockInterval = setInterval(tick, 1000);
+}
+
+function updateDeviceCardTimer(deviceId, elapsed) {
+  const card = document.querySelector(`.device-card[data-id="${deviceId}"]`);
+  if (card) {
+    const timerEl = card.querySelector('.session-timer');
+    if (timerEl) timerEl.textContent = formatTime(elapsed);
+  }
+}
+
+function renderSegmentsBreakdown(sess) {
+  const breakdown = document.getElementById('segments-breakdown');
+  const rows = document.getElementById('segments-rows');
+  if (!breakdown || !rows) return;
+  const segs = sess.segments || [];
+  if (segs.length === 0) { breakdown.style.display = 'none'; return; }
+
+  const prices = getDevicePrices(currentDeviceId);
+  breakdown.style.display = 'block';
+  rows.innerHTML = segs.map((seg, i) => {
+    const end = seg.endTime || Date.now();
+    const mins = Math.max(0, Math.floor((end - seg.startTime) / 60000));
+    const secs = Math.floor(((end - seg.startTime) % 60000) / 1000);
+    const cost = ((end - seg.startTime) / 3600000) * (seg.mode === 'multi' ? prices.multi : prices.single);
+    const icon = seg.mode === 'multi' ? '👥' : '👤';
+    const label = seg.mode === 'multi' ? 'جماعي' : 'فردي';
+    const rate = seg.mode === 'multi' ? prices.multi : prices.single;
+    const isActive = !seg.endTime;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:3px 0;border-bottom:1px dashed var(--border);${isActive ? 'color:var(--accent);font-weight:700;' : ''}">
+      <span>${icon} ${label} <span style="color:var(--text-muted);font-size:10px;">${rate}${CONFIG.currency}/س</span>${isActive ? ' <span style="font-size:9px;background:var(--accent);color:#fff;border-radius:4px;padding:1px 4px;">جارٍ</span>' : ''}</span>
+      <span>${mins}:${secs.toString().padStart(2,'0')} = <b>${cost.toFixed(1)} ${CONFIG.currency}</b></span>
+    </div>`;
+  }).join('');
+}
+
+function updateSessionModalTimer(elapsed, sess) {
+  const el = document.getElementById('session-timer-display');
+  if (!el) return;
+  el.textContent = formatTime(elapsed);
+
+  const timeCost = calcSegmentsCost(sess.segments || [], currentDeviceId);
+  const ordersCost = calcOrdersCost(sess.orders || []);
+  const prevCost = sess.prevCost || 0;
+  const subtotal = timeCost + ordersCost + prevCost;
+  const discount = getDiscountValue();
+  const total = Math.max(0, subtotal - discount);
+
+  setEl('time-cost', timeCost.toFixed(1) + ' ' + CONFIG.currency);
+  setEl('orders-cost', ordersCost.toFixed(0) + ' ' + CONFIG.currency);
+  const discEl = document.getElementById('discount-display');
+  if (discEl) discEl.textContent = discount > 0 ? `— ${discount.toFixed(0)} ${CONFIG.currency}` : `— 0 ${CONFIG.currency}`;
+  setEl('total-cost', total.toFixed(1) + ' ' + CONFIG.currency);
+
+  // Render segments breakdown in bill
+  renderSegmentsBreakdown(sess);
+
+  // Timer label + expiry handling
+  if (sess.duration > 0) {
+    const remaining = sess.duration * 60 - elapsed;
+    if (remaining > 0) {
+      setEl('timer-label', `متبقي: ${formatTime(remaining)}`);
+      if (remaining === 300) showToast(`تحذير: 5 دقائق على انتهاء جهاز ${currentDeviceId}`, 'warning');
+      if (remaining === 60)  showToast(`تحذير: دقيقة واحدة على انتهاء جهاز ${currentDeviceId}`, 'warning');
+    } else {
+      // Timer expired — auto-stop and unlock mode buttons
+      setEl('timer-label', '⏰ انتهى الوقت!');
+      el.style.color = 'var(--red)';
+      showToast(`انتهى وقت جهاز ${currentDeviceId} — يمكن اختيار وضع جديد والبدء`, 'warning');
+      stopSession();
+    }
+  } else {
+    const currentMode = sess.playMode || 'single';
+    const prices = getDevicePrices(currentDeviceId);
+    const rate = currentMode === 'multi' ? prices.multi : prices.single;
+    const isNight = new Date().getHours() < CONFIG.dayStartHour || new Date().getHours() >= CONFIG.nightStartHour;
+    const timeIcon = isNight ? '🌙' : '🌞';
+    setEl('timer-label', `${currentMode === 'multi' ? '👥 جماعي' : '👤 فردي'} ${timeIcon} — ${rate} ${CONFIG.currency}/س`);
+  }
+}
+
+// ===================================================================
+// HELPERS
+// ===================================================================
+function formatTime(sec) {
+  const h = Math.floor(sec / 3600).toString().padStart(2, '0');
+  const m = Math.floor((sec % 3600) / 60).toString().padStart(2, '0');
+  const s = (sec % 60).toString().padStart(2, '0');
+  return `${h}:${m}:${s}`;
+}
+function setEl(id, html) { const e = document.getElementById(id); if (e) e.innerHTML = html; }
+function fmtDateTime(ts) {
+  if (!ts) return '--';
+  const d = new Date(ts);
+  const date = d.toLocaleDateString('ar-EG', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const time = d.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', hour12: true });
+  return `${date} ${time}`;
+}
+function fmtDate(ts) { if (!ts) return '--'; return new Date(ts).toLocaleDateString('ar-EG', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
+function fmtTime(ts) {
+  if (!ts) return '--';
+  return new Date(ts).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', hour12: true });
+}
+function genId() { return Date.now() + Math.floor(Math.random() * 1000); }
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+function getDevicePrices(deviceId) {
+  const dev = DB.getDevices().find(d => d.id === deviceId);
+  return getDevicePricesAt(dev, Date.now());
+}
+
+// Returns prices for a specific timestamp (used in segment billing)
+function getDevicePricesAt(dev, ts) {
+  const hour = new Date(ts).getHours();
+  const isDay = hour >= CONFIG.dayStartHour && hour < CONFIG.nightStartHour;
+  if (isDay) {
+    return {
+      single: dev ? (dev.singlePrice    || dev.hourPrice || CONFIG.hourPrice) : CONFIG.hourPrice,
+      multi:  dev ? (dev.multiPrice     || CONFIG.hourPrice) : CONFIG.hourPrice,
+    };
+  } else {
+    return {
+      single: dev ? (dev.singleNightPrice || dev.singlePrice || dev.hourPrice || CONFIG.hourPrice) : CONFIG.hourPrice,
+      multi:  dev ? (dev.multiNightPrice  || dev.multiPrice  || CONFIG.hourPrice) : CONFIG.hourPrice,
+    };
+  }
+}
+
+function calcSegmentsCost(segments, deviceId) {
+  // segments: [{mode, startTime, endTime}]  endTime=null means ongoing
+  // Split each segment at the 6AM/6PM boundary so each slice is priced correctly
+  const dev = DB.getDevices().find(d => d.id === deviceId);
+  const SLICE = 60 * 1000; // 1-minute slices for boundary precision
+  return Math.ceil(segments.reduce((total, seg) => {
+    const end = seg.endTime || Date.now();
+    let cursor = seg.startTime;
+    let segCost = 0;
+    // Walk through minute-slices so boundary crossings are captured
+    while (cursor < end) {
+      const next = Math.min(cursor + SLICE, end);
+      const midpoint = cursor + (next - cursor) / 2;
+      const prices = getDevicePricesAt(dev, midpoint);
+      const price = seg.mode === 'multi' ? prices.multi : prices.single;
+      segCost += ((next - cursor) / 3600000) * price;
+      cursor = next;
+    }
+    return total + segCost;
+  }, 0));
+}
+
+function calcTimeCost(elapsed, duration, deviceId) {
+  // Legacy fallback — use global price. Actual segment billing via calcSegmentsCost.
+  const prices = getDevicePrices(deviceId);
+  return (elapsed / 3600) * prices.single;
+}
+function calcOrdersCost(orders) {
+  return orders.reduce((s, o) => s + (o.price * o.qty), 0);
+}
+
+function getDiscountValue() {
+  const inp = document.getElementById('discount-input');
+  return inp ? (parseFloat(inp.value) || 0) : 0;
+}
+
+function applyDiscount() {
+  // Re-trigger the timer display so total updates immediately
+  const sess = currentDeviceId ? activeSessions[currentDeviceId] : null;
+  if (!sess) return;
+  const elapsed = sess.running
+    ? Math.floor((Date.now() - sess.startTime) / 1000)
+    : (sess.frozenElapsed || 0);
+  updateSessionModalTimer(elapsed, sess);
+}
+
+function showToast(msg, type = 'success') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  const icons = { success: 'check-circle', error: 'times-circle', info: 'info-circle', warning: 'exclamation-triangle' };
+  t.innerHTML = `<i class="fas fa-${icons[type]||'info-circle'}"></i> ${msg}`;
+  c.appendChild(t);
+  setTimeout(() => { t.style.animation = 'slideOut 0.3s ease forwards'; setTimeout(() => t.remove(), 300); }, 3000);
+}
+
+function confirm(msg, cb) {
+  document.getElementById('confirm-message').textContent = msg;
+  const btn = document.getElementById('confirm-ok-btn');
+  btn.onclick = () => { closeModal('confirm-modal'); cb(); };
+  document.getElementById('confirm-modal').classList.remove('hidden');
+}
+
+// ===================================================================
+// AUTH
+// ===================================================================
+function doLogin() {
+  const u = document.getElementById('login-username').value.trim();
+  const p = document.getElementById('login-password').value.trim();
+  if (!u || !p) { showToast('أدخل اسم المستخدم وكلمة المرور', 'error'); return; }
+  const staff = DB.getStaff();
+  const user = staff.find(s => s.username === u && s.password === p);
+  if (!user) { showToast('بيانات الدخول غير صحيحة', 'error'); return; }
+
+  // Update login time
+  const now = Date.now();
+  const idx = staff.indexOf(user);
+  staff[idx].loggedIn = true;
+  staff[idx].loginTime = now;
+  staff[idx].logoutTime = null;
+  DB.setStaff(staff);
+
+  // Log login
+  const log = DB.getLoginLog();
+  log.push({ id: genId(), staffId: user.id, staffName: user.name, loginTime: now, logoutTime: null });
+  DB.setLoginLog(log);
+
+  currentUser = staff[idx];
+  initApp();
+}
+
+function doLogout() {
+  if (!currentUser) return;
+  confirm('هل تريد تسجيل الخروج؟', () => {
+    const now = Date.now();
+    const staff = DB.getStaff();
+    const idx = staff.findIndex(s => s.id === currentUser.id);
+    if (idx >= 0) { staff[idx].loggedIn = false; staff[idx].logoutTime = now; DB.setStaff(staff); }
+    const log = DB.getLoginLog();
+    const li = log.slice().reverse().find(l => l.staffId === currentUser.id && !l.logoutTime);
+    if (li) { const i = log.indexOf(li); log[i].logoutTime = now; DB.setLoginLog(log); }
+    currentUser = null;
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('login-page').style.display = 'flex';
+    showToast('تم تسجيل الخروج بنجاح', 'info');
+  });
+}
+
+function openCloseShiftModal() {
+  const now = Date.now();
+  const today = new Date().toDateString();
+  const sessions = DB.getSessions().filter(s => new Date(s.startTime).toDateString() === today && s.status === 'closed');
+  const orders = DB.getOrders ? DB.getOrders().filter(o => new Date(o.time || o.timestamp || now).toDateString() === today) : [];
+
+  const totalRevenue = sessions.reduce((s, x) => s + (x.totalCost || 0), 0);
+  const timeRevenue  = sessions.reduce((s, x) => s + (x.timeCost || 0), 0);
+  const orderRevenue = sessions.reduce((s, x) => s + (x.ordersCost || 0), 0);
+  const discounts    = sessions.reduce((s, x) => s + (x.discount || 0), 0);
+  const sessionCount = sessions.length;
+
+  // Cash in drawer: opening balance + revenue - advances paid today
+  const advances = DB.getAdvances ? DB.getAdvances().filter(a => new Date(a.date || a.time || now).toDateString() === today) : [];
+  const advancesTotal = advances.reduce((s, a) => s + (a.amount || 0), 0);
+  const openingCash = parseFloat(document.getElementById('shift-opening-cash')?.value || 0);
+  const cashInDrawer = openingCash + totalRevenue - advancesTotal;
+
+  // Active sessions warning
+  const activeCount = Object.keys(activeSessions).length;
+  const activeWarning = activeCount > 0
+    ? `<div style="background:var(--yellow-bg);color:var(--yellow);padding:10px 14px;border-radius:8px;margin-bottom:12px;font-weight:700;"><i class="fas fa-triangle-exclamation"></i> تحذير: يوجد ${activeCount} جلسة نشطة لم تُغلق بعد</div>`
+    : '';
+
+  // Shift start time
+  const log = DB.getLoginLog ? DB.getLoginLog() : [];
+  const myLog = log.slice().reverse().find(l => l.staffId === (currentUser?.id) && !l.logoutTime);
+  const shiftStart = myLog ? new Date(myLog.loginTime).toLocaleTimeString('ar-EG', {hour:'2-digit',minute:'2-digit'}) : '—';
+
+  document.getElementById('close-shift-body').innerHTML = `
+    ${activeWarning}
+    <div style="background:var(--card);border-radius:10px;padding:14px 16px;margin-bottom:12px;">
+      <div style="font-weight:800;font-size:15px;margin-bottom:10px;color:var(--accent);"><i class="fas fa-clock"></i> معلومات الشيفت</div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--border);"><span style="color:var(--text-muted);">الكاشير</span><span style="font-weight:700;">${currentUser?.name || '—'}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--border);"><span style="color:var(--text-muted);">بداية الشيفت</span><span style="font-weight:700;">${shiftStart}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;"><span style="color:var(--text-muted);">نهاية الشيفت</span><span style="font-weight:700;">${new Date().toLocaleTimeString('ar-EG', {hour:'2-digit',minute:'2-digit'})}</span></div>
+    </div>
+    <div style="background:var(--card);border-radius:10px;padding:14px 16px;margin-bottom:12px;">
+      <div style="font-weight:800;font-size:15px;margin-bottom:10px;color:var(--green);"><i class="fas fa-coins"></i> ملخص الإيرادات</div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--border);"><span style="color:var(--text-muted);">عدد الجلسات المغلقة</span><span style="font-weight:700;">${sessionCount} جلسة</span></div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--border);"><span style="color:var(--text-muted);">إيراد الوقت</span><span style="font-weight:700;">${timeRevenue.toFixed(0)} ${CONFIG.currency}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--border);"><span style="color:var(--text-muted);">إيراد الطلبات</span><span style="font-weight:700;">${orderRevenue.toFixed(0)} ${CONFIG.currency}</span></div>
+      ${discounts > 0 ? `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--border);"><span style="color:var(--text-muted);">إجمالي الخصومات</span><span style="font-weight:700;color:var(--red);">— ${discounts.toFixed(0)} ${CONFIG.currency}</span></div>` : ''}
+      <div style="display:flex;justify-content:space-between;padding:8px 0 0;font-size:16px;font-weight:900;"><span>صافي الإيراد</span><span style="color:var(--green);">${totalRevenue.toFixed(0)} ${CONFIG.currency}</span></div>
+    </div>
+    <div style="background:var(--card);border-radius:10px;padding:14px 16px;">
+      <div style="font-weight:800;font-size:15px;margin-bottom:10px;color:var(--yellow);"><i class="fas fa-cash-register"></i> الدرج النقدي</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px dashed var(--border);">
+        <span style="color:var(--text-muted);">رصيد أول الشيفت</span>
+        <input type="number" id="shift-opening-cash" min="0" step="1" placeholder="0"
+          style="width:90px;padding:3px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;text-align:center;"
+          oninput="openCloseShiftModal()" value="${openingCash || 0}">
+      </div>
+      ${advancesTotal > 0 ? `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--border);"><span style="color:var(--text-muted);">سلف مدفوعة</span><span style="font-weight:700;color:var(--red);">— ${advancesTotal.toFixed(0)} ${CONFIG.currency}</span></div>` : ''}
+      <div style="display:flex;justify-content:space-between;padding:8px 0 0;font-size:16px;font-weight:900;"><span>المتبقي في الدرج</span><span style="color:var(--yellow);">${cashInDrawer.toFixed(0)} ${CONFIG.currency}</span></div>
+    </div>
+  `;
+
+  document.getElementById('close-shift-modal').classList.remove('hidden');
+}
+
+function printShiftReport() {
+  const body = document.getElementById('close-shift-body').innerHTML;
+  const win = window.open('', '_blank', 'width=400,height=600');
+  win.document.write(`
+    <html dir="rtl"><head><meta charset="UTF-8"><title>تقرير الشيفت</title>
+    <style>body{font-family:Arial,sans-serif;padding:20px;font-size:13px;direction:rtl;}
+    *{box-sizing:border-box;}</style></head>
+    <body>${body}<br><hr>
+    <div style="text-align:center;font-size:11px;color:#888;">طُبع في ${new Date().toLocaleString('ar-EG')}</div>
+    <script>window.onload=()=>{window.print();window.close();}<\/script>
+    </body></html>
+  `);
+  win.document.close();
+}
+
+function initApp() {
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  setEl('user-name', currentUser.name);
+  setEl('user-avatar', currentUser.name.charAt(0));
+  setEl('header-title', CONFIG.shopName || 'GameZone');
+  document.getElementById('shift-status').textContent = 'داخل';
+
+  if (currentUser.role === 'admin') {
+    document.getElementById('admin-view').classList.remove('hidden');
+    document.getElementById('cashier-view').classList.add('hidden');
+    loadOverview();
+  } else {
+    document.getElementById('cashier-view').classList.remove('hidden');
+    document.getElementById('admin-view').classList.add('hidden');
+    renderDevicesGrid();
+    initStandalonePanel();
+  }
+  startClock();
+  restoreActiveSessions();
+  setInterval(autoSave, CONFIG.autoSaveInterval);
+}
+
+function autoSave() { showToast('تم الحفظ التلقائي', 'info'); }
+
+// ===================================================================
+// RESTORE SESSIONS ON RELOAD
+// ===================================================================
+function restoreActiveSessions() {
+  const allSessions = DB.getSessions();
+  const allOrders = DB.getOrders();
+
+  // Restore active sessions
+  allSessions.filter(s => s.status === 'active').forEach(s => {
+    activeSessions[s.deviceId] = {
+      sessionId:      s.id,
+      startTime:      s.startTime,
+      duration:       s.duration || 0,
+      playMode:       s.playMode || 'single',
+      segments:       s.segments || [{ mode: s.playMode || 'single', startTime: s.startTime, endTime: null }],
+      orders:         allOrders.filter(o => o.sessionId === s.id),
+      running:        true,
+      prevCost:       s.prevCost || 0,
+      transferredFrom: s.transferredFrom || null,
+      transferChain:  s.transferChain || [s.deviceId],
+    };
+  });
+
+  // Restore pending transfers from localStorage
+  const savedPending = DB.get('pendingTransfers');
+  if (savedPending && typeof savedPending === 'object') {
+    Object.keys(savedPending).forEach(k => {
+      pendingTransfers[parseInt(k)] = savedPending[k];
+    });
+  }
+}
+
+// ===================================================================
+// DEVICES GRID (CASHIER)
+// ===================================================================
+function renderDevicesGrid() {
+  const grid = document.getElementById('devices-grid');
+  const devices = DB.getDevices();
+  const sessions = DB.getSessions();
+
+  let avail = 0, busy = 0;
+  grid.innerHTML = '';
+  devices.forEach(d => {
+    const sess = activeSessions[d.id];
+    const isBusy = sess && sess.running;
+    const isPending = !!pendingTransfers[d.id];
+    const status = isBusy ? 'busy' : isPending ? 'reserved' : (d.status === 'maintenance' ? 'reserved' : 'available');
+    if (status === 'available') avail++; else busy++;
+
+    let elapsed = 0;
+    if (isBusy) elapsed = Math.floor((Date.now() - sess.startTime) / 1000);
+
+    const card = document.createElement('div');
+    card.className = `device-card ${status}`;
+    card.dataset.id = d.id;
+    card.onclick = () => openSessionModal(d.id);
+    card.innerHTML = `
+      <div class="device-icon"><i class="fas fa-${isBusy ? 'gamepad' : isPending ? 'right-left' : 'tv'}"></i></div>
+      <div class="device-num">${d.num}</div>
+      <div class="device-name">${d.name}</div>
+      <div class="device-status"><i class="fas fa-circle" style="font-size:8px;margin-left:4px;"></i>
+        ${isBusy ? 'مشغول' : isPending ? 'بانتظار البدء' : status === 'available' ? 'متاح' : 'صيانة'}
+      </div>
+      <div style="font-size:10px;color:var(--text-muted);margin-top:6px;">
+        ${(()=>{ const h=new Date().getHours(); const night=h<CONFIG.dayStartHour||h>=CONFIG.nightStartHour; const sp=night?(d.singleNightPrice||d.singlePrice||CONFIG.hourPrice):(d.singlePrice||CONFIG.hourPrice); const mp=night?(d.multiNightPrice||d.multiPrice||CONFIG.hourPrice):(d.multiPrice||CONFIG.hourPrice); return `${night?'🌙':'🌞'} <i class="fas fa-user" style="color:var(--accent)"></i> ${sp} &nbsp;<i class="fas fa-users" style="color:var(--green)"></i> ${mp} ${CONFIG.currency}/س`; })()}
+      </div>
+      ${isPending ? `<div style="margin-top:6px;font-size:11px;font-weight:700;color:var(--yellow);"><i class="fas fa-right-left"></i> منقول إليه — ${pendingTransfers[d.id].prevCost.toFixed(0)} ${CONFIG.currency}</div>` : ''}
+      ${isBusy ? `
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px;">
+          <div class="session-timer pulse">${formatTime(elapsed)}</div>
+          <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:${(activeSessions[d.id]||{}).playMode==='multi'?'var(--green-bg)':'rgba(108,99,255,0.15)'};color:${(activeSessions[d.id]||{}).playMode==='multi'?'var(--green)':'var(--accent)'};">
+            ${(activeSessions[d.id]||{}).playMode==='multi'?'جماعي':'فردي'}
+          </span>
+        </div>` : ''}
+    `;
+    grid.appendChild(card);
+  });
+  setEl('avail-count', avail);
+  setEl('busy-count', busy);
+  setEl('devices-subtitle', `${devices.length} جهاز - ${avail} متاح - ${busy} مشغول`);
+}
+
+// ===================================================================
+// SESSION MODAL
+// ===================================================================
+function openSessionModal(deviceId) {
+  currentDeviceId = deviceId;
+  const devices = DB.getDevices();
+  const d = devices.find(x => x.id === deviceId);
+  if (!d) return;
+
+  // Declare sess and running FIRST before any usage
+  const sess = activeSessions[deviceId];
+  const running = sess && sess.running;
+
+  setEl('modal-device-title', `جهاز ${d.num} - ${d.name}`);
+  const prices = getDevicePrices(deviceId);
+  setEl('device-price-display', `فردي: ${prices.single} | جماعي: ${prices.multi} ${CONFIG.currency}/س`);
+
+  // Restore play mode UI — locked while session running
+  const currentMode = sess ? (sess.playMode || 'single') : 'single';
+  selectedPlayMode = currentMode;
+  updateModeUI(currentMode);
+  lockModeButtons(running);
+
+  // Transfer btn: only enabled when session is running
+  document.getElementById('btn-transfer').disabled = !running;
+
+  // Transfer chain display — from active session OR pending transfer
+  const pending = pendingTransfers[deviceId];
+  if (sess && sess.transferredFrom) {
+    const fromDev = DB.getDevices().find(x => x.id === sess.transferredFrom);
+    document.getElementById('transfer-from-row').classList.remove('hidden');
+    document.getElementById('prev-cost-row').classList.remove('hidden');
+    setEl('transfer-from-display', fromDev ? fromDev.name : 'جهاز سابق');
+    setEl('prev-cost-display', (sess.prevCost || 0).toFixed(0) + ' ' + CONFIG.currency);
+    setEl('prev-cost-label', 'رصيد منقول');
+  } else if (pending) {
+    const fromDev = DB.getDevices().find(x => x.id === pending.transferredFrom);
+    document.getElementById('transfer-from-row').classList.remove('hidden');
+    document.getElementById('prev-cost-row').classList.remove('hidden');
+    setEl('transfer-from-display', fromDev ? fromDev.name : 'جهاز سابق');
+    setEl('prev-cost-display', pending.prevCost.toFixed(0) + ' ' + CONFIG.currency);
+    setEl('prev-cost-label', 'رصيد منقول');
+    // Show carried orders
+    renderOrdersList(pending.orders || []);
+  } else if (sess && sess.prevCost > 0) {
+    document.getElementById('transfer-from-row').classList.add('hidden');
+    document.getElementById('prev-cost-row').classList.remove('hidden');
+    setEl('prev-cost-display', (sess.prevCost || 0).toFixed(0) + ' ' + CONFIG.currency);
+    setEl('prev-cost-label', 'جلسات سابقة اليوم');
+  } else {
+    document.getElementById('transfer-from-row').classList.add('hidden');
+    document.getElementById('prev-cost-row').classList.add('hidden');
+  }
+
+  document.getElementById('btn-start').disabled = running;
+  document.getElementById('btn-stop').disabled = !running;
+  document.getElementById('btn-reset').disabled = !running;
+
+  if (running) {
+    const elapsed = Math.floor((Date.now() - sess.startTime) / 1000);
+    document.getElementById('session-timer-display').textContent = formatTime(elapsed);
+    setEl('start-time-display', fmtTime(sess.startTime));
+    renderOrdersList(sess.orders || []);
+    updateSessionModalTimer(elapsed, sess);
+  } else {
+    document.getElementById('session-timer-display').textContent = '00:00:00';
+    setEl('timer-label', 'في انتظار البدء');
+    setEl('time-cost', '0 ' + CONFIG.currency);
+    setEl('orders-cost', '0 ' + CONFIG.currency);
+    setEl('total-cost', '0 ' + CONFIG.currency);
+    setEl('start-time-display', '--:--');
+    renderOrdersList([]);
+    const bd = document.getElementById('segments-breakdown');
+    if (bd) bd.style.display = 'none';
+  }
+
+  // Reset discount field every time modal opens
+  const discInp = document.getElementById('discount-input');
+  if (discInp) discInp.value = 0;
+  const discDisp = document.getElementById('discount-display');
+  if (discDisp) discDisp.textContent = `— 0 ${CONFIG.currency}`;
+
+  renderQuickProducts();
+  selectedDuration = sess ? (sess.duration || 0) : 0;
+  highlightDurationBtn(selectedDuration);
+  document.getElementById('session-modal').classList.remove('hidden');
+}
+
+function startSession() {
+  const now = Date.now();
+  const sessionId = genId();
+  const mode = selectedPlayMode || 'single';
+
+  // Check for pending transfer on this device
+  const pending = pendingTransfers[currentDeviceId];
+  let prevCostAccum = 0;
+  let carriedOrders = [];
+  let transferredFrom = null;
+  let transferChain = [currentDeviceId];
+
+  if (pending) {
+    prevCostAccum = pending.prevCost || 0;
+    carriedOrders = [...(pending.orders || [])];
+    transferredFrom = pending.transferredFrom;
+    transferChain = pending.transferChain || [currentDeviceId];
+    delete pendingTransfers[currentDeviceId];
+    savePendingTransfers();
+  } else {
+    // Each session starts fresh — no accumulation from previous sessions
+    prevCostAccum = 0;
+  }
+
+  activeSessions[currentDeviceId] = {
+    sessionId, startTime: now, duration: selectedDuration, playMode: mode,
+    segments: [{ mode, startTime: now, endTime: null }],
+    orders: carriedOrders, running: true,
+    prevCost: prevCostAccum, transferredFrom, transferChain,
+  };
+
+  const allSessions = DB.getSessions();
+  allSessions.push({ id: sessionId, deviceId: currentDeviceId, startTime: now, endTime: null, duration: selectedDuration, playMode: mode, timeCost: 0, ordersCost: calcOrdersCost(carriedOrders), totalCost: prevCostAccum, prevCost: prevCostAccum, transferChain, transferredFrom, status: 'active', staffId: currentUser.id });
+  DB.setSessions(allSessions);
+
+  document.getElementById('btn-start').disabled = true;
+  document.getElementById('btn-stop').disabled = false;
+  document.getElementById('btn-reset').disabled = false;
+  document.getElementById('btn-transfer').disabled = false;
+  lockModeButtons(true);
+  setEl('start-time-display', fmtTime(now));
+
+  if (prevCostAccum > 0) {
+    document.getElementById('prev-cost-row').classList.remove('hidden');
+    setEl('prev-cost-display', prevCostAccum.toFixed(0) + ' ' + CONFIG.currency);
+    setEl('prev-cost-label', transferredFrom ? 'رصيد منقول' : 'جلسات سابقة اليوم');
+    if (transferredFrom) {
+      const fromDev = DB.getDevices().find(d => d.id === transferredFrom);
+      document.getElementById('transfer-from-row').classList.remove('hidden');
+      setEl('transfer-from-display', fromDev ? fromDev.name : 'جهاز سابق');
+    } else {
+      document.getElementById('transfer-from-row').classList.add('hidden');
+    }
+  }
+  if (carriedOrders.length > 0) renderOrdersList(carriedOrders);
+
+  showToast(`بدأت جلسة جهاز ${currentDeviceId} — وضع ${mode === 'multi' ? 'جماعي' : 'فردي'}`, 'success');
+  renderDevicesGrid();
+}
+
+function stopSession() {
+  const sess = activeSessions[currentDeviceId];
+  if (!sess) return;
+  const now = Date.now();
+
+  // Close last open segment
+  if (sess.segments && sess.segments.length > 0) {
+    const last = sess.segments[sess.segments.length - 1];
+    if (!last.endTime) last.endTime = now;
+  }
+
+  const elapsed = Math.floor((now - sess.startTime) / 1000);
+  const timeCost = calcSegmentsCost(sess.segments || [], currentDeviceId);
+  const ordersCost = calcOrdersCost(sess.orders || []);
+  const prevCost = sess.prevCost || 0;
+  const discount = getDiscountValue();
+  const totalCost = Math.max(0, timeCost + ordersCost + prevCost - discount);
+
+  const sessions = DB.getSessions();
+  const si = sessions.findIndex(s => s.id === sess.sessionId);
+  if (si >= 0) {
+    sessions[si].endTime = now;
+    sessions[si].elapsed = elapsed;
+    sessions[si].timeCost = timeCost;
+    sessions[si].ordersCost = ordersCost;
+    sessions[si].prevCost = prevCost;
+    sessions[si].discount = discount;
+    sessions[si].totalCost = totalCost;
+    sessions[si].segments = sess.segments;
+    sessions[si].playMode = sess.playMode || 'single';
+    sessions[si].transferChain = sess.transferChain || [currentDeviceId];
+    sessions[si].status = 'closed';
+    DB.setSessions(sessions);
+  }
+  const devices = DB.getDevices();
+  const di = devices.findIndex(d => d.id === currentDeviceId);
+  if (di >= 0) {
+    devices[di].currentSession = null;
+    devices[di].totalSessions = (devices[di].totalSessions || 0) + 1;
+    devices[di].totalRevenue = (devices[di].totalRevenue || 0) + totalCost;
+    DB.setDevices(devices);
+  }
+
+  delete activeSessions[currentDeviceId];
+  document.getElementById('btn-start').disabled = false;
+  document.getElementById('btn-stop').disabled = true;
+  document.getElementById('btn-reset').disabled = true;
+  document.getElementById('btn-transfer').disabled = true;
+  lockModeButtons(false);
+  const timerEl = document.getElementById('session-timer-display');
+  if (timerEl) timerEl.style.color = '';
+  document.getElementById('session-timer-display').textContent = '00:00:00';
+  const bd = document.getElementById('segments-breakdown');
+  if (bd) bd.style.display = 'none';
+  setEl('timer-label', `مكتمل — إجمالي: ${totalCost.toFixed(0)} ${CONFIG.currency}`);
+  showToast(`انتهت جلسة جهاز ${currentDeviceId} — الإجمالي: ${totalCost.toFixed(0)} ${CONFIG.currency}`, 'success');
+  renderDevicesGrid();
+}
+
+function resetSession() {
+  confirm('هل تريد إعادة تعيين الجلسة الحالية؟', () => {
+    stopSession();
+    showToast('تم إعادة تعيين الجلسة', 'info');
+  });
+}
+
+function setDuration(minutes) {
+  selectedDuration = minutes;
+  if (activeSessions[currentDeviceId]) activeSessions[currentDeviceId].duration = minutes;
+  highlightDurationBtn(minutes);
+  document.getElementById('custom-duration-row').style.display = 'none';
+}
+
+function highlightDurationBtn(minutes) {
+  const map = { 30: 0, 60: 1, 120: 2, 180: 3, 0: 4 };
+  document.querySelectorAll('.dur-btn').forEach((b, i) => b.classList.toggle('active', i === map[minutes]));
+}
+
+function openCustomDuration() {
+  const row = document.getElementById('custom-duration-row');
+  row.style.display = row.style.display === 'none' ? 'flex' : 'none';
+}
+
+function applyCustomDuration() {
+  const v = parseInt(document.getElementById('custom-minutes').value);
+  if (v > 0) { setDuration(v); document.querySelectorAll('.dur-btn').forEach((b, i) => b.classList.toggle('active', i === 5)); }
+}
+
+// ===================================================================
+// QUICK PRODUCTS & ORDERS
+// ===================================================================
+function renderQuickProducts() {
+  const products = DB.getProducts().filter(p => p.available);
+  const top = products.slice(0, 6);
+  const qp = document.getElementById('quick-products');
+  qp.innerHTML = top.map(p => `
+    <div class="quick-prod-btn" onclick="addProductById(${p.id})">${p.name} (${p.price})</div>
+  `).join('');
+}
+
+function addProductById(pid) {
+  const products = DB.getProducts();
+  const p = products.find(x => x.id === pid);
+  if (!p) return;
+  const qty = parseInt(document.getElementById('product-qty').value) || 1;
+  addOrderItem(p, qty);
+}
+
+function searchProducts(q) {
+  const dropdown = document.getElementById('product-dropdown');
+  if (!q) { dropdown.classList.add('hidden'); return; }
+  const products = DB.getProducts().filter(p => p.available && p.name.includes(q));
+  if (!products.length) { dropdown.classList.add('hidden'); return; }
+  dropdown.innerHTML = products.map(p => `
+    <div class="dropdown-item" onclick="selectProduct(${p.id}, '${p.name}')">
+      <span>${p.name}</span><span style="color:var(--accent);font-weight:700;">${p.price} ${CONFIG.currency}</span>
+    </div>
+  `).join('');
+  dropdown.classList.remove('hidden');
+}
+
+function selectProduct(pid, name) {
+  selectedProductId = pid;
+  document.getElementById('product-search').value = name;
+  document.getElementById('product-dropdown').classList.add('hidden');
+}
+
+function addSelectedProduct() {
+  if (!selectedProductId) { showToast('اختر منتجاً أولاً', 'error'); return; }
+  const qty = parseInt(document.getElementById('product-qty').value) || 1;
+  const p = DB.getProducts().find(x => x.id === selectedProductId);
+  if (p) addOrderItem(p, qty);
+  document.getElementById('product-search').value = '';
+  selectedProductId = null;
+}
+
+function addOrderItem(product, qty) {
+  if (!activeSessions[currentDeviceId]) { showToast('ابدأ جلسة أولاً', 'error'); return; }
+  const sess = activeSessions[currentDeviceId];
+  if (!sess.orders) sess.orders = [];
+  const existing = sess.orders.find(o => o.productId === product.id);
+  if (existing) { existing.qty += qty; } else {
+    sess.orders.push({ id: genId(), sessionId: sess.sessionId, productId: product.id, name: product.name, price: product.price, qty, time: Date.now() });
+  }
+  // Reduce stock
+  const products = DB.getProducts();
+  const pi = products.findIndex(p => p.id === product.id);
+  if (pi >= 0) { products[pi].stock = Math.max(0, (products[pi].stock || 0) - qty); DB.setProducts(products); }
+
+  // Save order to DB
+  const orders = DB.getOrders();
+  const existing2 = orders.find(o => o.sessionId === sess.sessionId && o.productId === product.id);
+  if (existing2) { existing2.qty += qty; } else {
+    orders.push({ id: genId(), sessionId: sess.sessionId, productId: product.id, name: product.name, price: product.price, qty, time: Date.now() });
+  }
+  DB.setOrders(orders);
+  renderOrdersList(sess.orders);
+  showToast(`تمت إضافة ${product.name} x${qty}`, 'success');
+  if (products[pi] && products[pi].stock <= CONFIG.lowStockThreshold) showToast(`تنبيه: مخزون ${product.name} منخفض!`, 'warning');
+}
+
+function renderOrdersList(orders) {
+  const list = document.getElementById('orders-list');
+  setEl('orders-count', orders.length);
+  if (!orders.length) { list.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:20px;font-size:12px;">لا توجد طلبات</div>'; return; }
+  list.innerHTML = orders.map(o => `
+    <div class="order-item">
+      <div class="name">${o.name}</div>
+      <div class="qty-ctrl">
+        <button class="qty-btn" onclick="changeOrderQty(${o.productId}, -1)"><i class="fas fa-minus"></i></button>
+        <span style="font-weight:700;font-variant-numeric:tabular-nums;">${o.qty}</span>
+        <button class="qty-btn" onclick="changeOrderQty(${o.productId}, 1)"><i class="fas fa-plus"></i></button>
+      </div>
+      <span style="color:var(--accent);font-weight:700;margin-right:8px;">${(o.price * o.qty).toFixed(0)} ${CONFIG.currency}</span>
+      <button class="qty-btn" style="color:var(--red);" onclick="removeOrder(${o.productId})"><i class="fas fa-trash-can"></i></button>
+    </div>
+  `).join('');
+}
+
+function changeOrderQty(productId, delta) {
+  const sess = activeSessions[currentDeviceId];
+  if (!sess) return;
+  const o = sess.orders.find(x => x.productId === productId);
+  if (!o) return;
+  o.qty = Math.max(1, o.qty + delta);
+  renderOrdersList(sess.orders);
+}
+
+function removeOrder(productId) {
+  const sess = activeSessions[currentDeviceId];
+  if (!sess) return;
+  sess.orders = sess.orders.filter(o => o.productId !== productId);
+  renderOrdersList(sess.orders);
+}
+
+// ===================================================================
+// ADMIN TABS
+// ===================================================================
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+  // Load tab data
+  const loaders = {
+    'tab-overview': loadOverview,
+    'tab-devices': loadDevicesTab,
+    'tab-products': loadProductsTab,
+    'tab-inventory': loadInventoryTab,
+    'tab-reports': loadReports,
+    'tab-staff': loadStaffTab,
+    'tab-advances': loadAdvancesTab,
+    'tab-settings': loadSettingsTab,
+  };
+  if (loaders[tabId]) loaders[tabId]();
+}
+
+// ===================================================================
+// OVERVIEW TAB
+// ===================================================================
+function loadOverview() {
+  const devices = DB.getDevices();
+  const sessions = DB.getSessions();
+  const today = new Date().toDateString();
+  const todaySessions = sessions.filter(s => new Date(s.startTime).toDateString() === today);
+  const todayRevenue = todaySessions.reduce((s, x) => s + (x.totalCost || 0), 0);
+  const activeSess = Object.keys(activeSessions).length;
+
+  document.getElementById('overview-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-icon" style="background:rgba(108,99,255,0.15);color:var(--accent)"><i class="fas fa-desktop"></i></div><div><div style="font-size:24px;font-weight:900;">${devices.length}</div><div style="font-size:12px;color:var(--text-muted);">إجمالي الأجهزة</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:var(--red-bg);color:var(--red)"><i class="fas fa-gamepad"></i></div><div><div style="font-size:24px;font-weight:900;">${activeSess}</div><div style="font-size:12px;color:var(--text-muted);">جلسات نشطة</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:var(--green-bg);color:var(--green)"><i class="fas fa-arrow-trend-up"></i></div><div><div style="font-size:24px;font-weight:900;">${todayRevenue.toFixed(0)}</div><div style="font-size:12px;color:var(--text-muted);">إيراد اليوم (${CONFIG.currency})</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:var(--yellow-bg);color:var(--yellow)"><i class="fas fa-receipt"></i></div><div><div style="font-size:24px;font-weight:900;">${todaySessions.length}</div><div style="font-size:12px;color:var(--text-muted);">جلسات اليوم</div></div></div>
+  `;
+
+  // Active sessions list
+  const actList = document.getElementById('active-sessions-list');
+  const actKeys = Object.keys(activeSessions);
+  if (!actKeys.length) { actList.innerHTML = '<p style="color:var(--text-muted);font-size:13px;text-align:center;padding:20px;">لا توجد جلسات نشطة</p>'; }
+  else {
+    actList.innerHTML = actKeys.map(did => {
+      const s = activeSessions[did];
+      const d = devices.find(x => x.id === parseInt(did));
+      const elapsed = Math.floor((Date.now() - s.startTime) / 1000);
+      return `<div class="flex justify-between items-center" style="padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;">
+        <span style="font-weight:700;">${d ? d.name : 'جهاز ' + did}</span>
+        <span style="font-variant-numeric:tabular-nums;color:var(--accent);">${formatTime(elapsed)}</span>
+        <span style="color:var(--green);font-weight:700;">${(calcTimeCost(elapsed, s.duration, parseInt(did)) + calcOrdersCost(s.orders || [])).toFixed(0)} ${CONFIG.currency}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // Revenue chart (hourly today)
+  renderRevenueChart(todaySessions);
+}
+
+function renderRevenueChart(sessions) {
+  const ctx = document.getElementById('revenue-chart');
+  if (!ctx) return;
+  const hours = Array(24).fill(0);
+  sessions.forEach(s => { if (s.totalCost) { const h = new Date(s.startTime).getHours(); hours[h] += s.totalCost; } });
+  const labels = hours.map((_, i) => `${i}:00`).filter((_, i) => hours[i] > 0 || (i > 6 && i < 24));
+  const data = hours.filter((_, i) => hours[i] > 0 || (i > 6 && i < 24));
+  if (revenueChart) revenueChart.destroy();
+  revenueChart = new Chart(ctx, {
+    type: 'bar',
+    data: { labels: labels.slice(6), datasets: [{ label: 'الإيراد', data: data.slice(6), backgroundColor: 'rgba(108,99,255,0.6)', borderColor: '#6c63ff', borderWidth: 1 }] },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#9090b0', font: { size: 10 } }, grid: { color: '#2a2a3a' } }, y: { ticks: { color: '#9090b0', font: { size: 10 } }, grid: { color: '#2a2a3a' } } } }
+  });
+}
+
+// ===================================================================
+// DEVICES TAB
+// ===================================================================
+function loadDevicesTab() {
+  const devices = DB.getDevices();
+  document.getElementById('devices-tbody').innerHTML = devices.map(d => `
+    <tr>
+      <td>${d.num}</td><td>${d.name}</td>
+      <td><span class="badge ${d.status === 'available' ? 'badge-green' : 'badge-red'}">${d.status === 'available' ? 'متاح' : 'صيانة'}</span></td>
+      <td style="color:var(--accent);font-weight:700;">${(d.singlePrice || d.hourPrice || CONFIG.hourPrice).toFixed(0)} ${CONFIG.currency}</td>
+      <td style="color:var(--green);font-weight:700;">${(d.multiPrice || CONFIG.hourPrice).toFixed(0)} ${CONFIG.currency}</td>
+      <td>${d.totalSessions || 0}</td>
+      <td>${(d.totalRevenue || 0).toFixed(0)} ${CONFIG.currency}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="editDevice(${d.id})"><i class="fas fa-pen"></i></button>
+          <button class="btn btn-danger btn-sm" onclick="deleteDevice(${d.id})"><i class="fas fa-trash-can"></i></button></td>
+    </tr>
+  `).join('');
+}
+
+function openAddDeviceModal() {
+  const s = DB.getSettings();
+  document.getElementById('device-edit-id').value = '';
+  document.getElementById('device-num').value = '';
+  document.getElementById('device-name-input').value = '';
+  document.getElementById('device-single-price').value = s.defaultSingleDay || CONFIG.hourPrice;
+  document.getElementById('device-multi-price').value = s.defaultMultiDay || (CONFIG.hourPrice + 10);
+  document.getElementById('device-single-night-price').value = s.defaultSingleNight || CONFIG.hourPrice;
+  document.getElementById('device-multi-night-price').value = s.defaultMultiNight || (CONFIG.hourPrice + 10);
+  document.getElementById('device-status').value = 'available';
+  document.getElementById('add-device-modal').classList.remove('hidden');
+}
+
+function editDevice(id) {
+  const d = DB.getDevices().find(x => x.id === id);
+  if (!d) return;
+  document.getElementById('device-edit-id').value = id;
+  document.getElementById('device-num').value = d.num;
+  document.getElementById('device-name-input').value = d.name;
+  document.getElementById('device-single-price').value = d.singlePrice || d.hourPrice || CONFIG.hourPrice;
+  document.getElementById('device-multi-price').value = d.multiPrice || (CONFIG.hourPrice + 10);
+  document.getElementById('device-single-night-price').value = d.singleNightPrice || d.singlePrice || d.hourPrice || CONFIG.hourPrice;
+  document.getElementById('device-multi-night-price').value = d.multiNightPrice || d.multiPrice || (CONFIG.hourPrice + 10);
+  document.getElementById('device-status').value = d.status;
+  document.getElementById('add-device-modal').classList.remove('hidden');
+}
+
+function saveDevice() {
+  const eid = document.getElementById('device-edit-id').value;
+  const num = parseInt(document.getElementById('device-num').value);
+  const name = document.getElementById('device-name-input').value.trim() || `جهاز ${num}`;
+  const singlePrice = parseFloat(document.getElementById('device-single-price').value) || CONFIG.hourPrice;
+  const multiPrice = parseFloat(document.getElementById('device-multi-price').value) || (CONFIG.hourPrice + 10);
+  const singleNightPrice = parseFloat(document.getElementById('device-single-night-price').value) || singlePrice;
+  const multiNightPrice = parseFloat(document.getElementById('device-multi-night-price').value) || multiPrice;
+  const status = document.getElementById('device-status').value;
+  if (!num) { showToast('أدخل رقم الجهاز', 'error'); return; }
+  const devices = DB.getDevices();
+  if (eid) {
+    const i = devices.findIndex(d => d.id === parseInt(eid));
+    if (i >= 0) { devices[i].num = num; devices[i].name = name; devices[i].status = status; devices[i].singlePrice = singlePrice; devices[i].multiPrice = multiPrice; devices[i].singleNightPrice = singleNightPrice; devices[i].multiNightPrice = multiNightPrice; }
+  } else {
+    devices.push({ id: genId(), num, name, status, singlePrice, multiPrice, singleNightPrice, multiNightPrice, currentSession: null, totalSessions: 0, totalRevenue: 0 });
+  }
+  DB.setDevices(devices);
+  closeModal('add-device-modal');
+  loadDevicesTab();
+  renderDevicesGrid();
+  showToast('تم حفظ الجهاز', 'success');
+}
+
+function deleteDevice(id) {
+  confirm('هل تريد حذف هذا الجهاز؟', () => {
+    DB.setDevices(DB.getDevices().filter(d => d.id !== id));
+    loadDevicesTab();
+    renderDevicesGrid();
+    showToast('تم حذف الجهاز', 'success');
+  });
+}
+
+// ===================================================================
+// PRODUCTS TAB
+// ===================================================================
+function loadProductsTab() {
+  filterProducts(currentFilter);
+}
+
+function filterProducts(cat) {
+  currentFilter = cat;
+  const products = DB.getProducts();
+  const filtered = cat === 'all' ? products : products.filter(p => p.category === cat);
+  document.querySelectorAll('.active-filter').forEach(b => b.classList.remove('active-filter','btn-primary'));
+  const fBtn = document.getElementById(`filter-${cat === 'all' ? 'all' : cat === 'مشروب' ? 'drink' : 'food'}`);
+  if (fBtn) fBtn.classList.add('btn-primary');
+  const grid = document.getElementById('products-grid');
+  grid.innerHTML = filtered.map(p => `
+    <div class="product-card">
+      <div class="p-name">${p.name}</div>
+      <div class="p-cat"><span class="badge ${p.category === 'مشروب' ? 'badge-green' : 'badge-yellow'}">${p.category}</span></div>
+      <div class="p-price">${p.price} ${CONFIG.currency}</div>
+      <div class="p-stock"><i class="fas fa-boxes-stacked"></i> مخزون: <strong class="${p.stock <= CONFIG.lowStockThreshold ? 'inv-low' : 'inv-ok'}">${p.stock}</strong></div>
+      <div class="p-actions">
+        <button class="btn btn-ghost btn-sm" onclick="editProduct(${p.id})"><i class="fas fa-pen"></i></button>
+        <button class="btn btn-danger btn-sm" onclick="deleteProduct(${p.id})"><i class="fas fa-trash-can"></i></button>
+        <span class="badge ${p.available ? 'badge-green' : 'badge-red'}" style="cursor:pointer" onclick="toggleProduct(${p.id})">${p.available ? 'متاح' : 'مخفي'}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openAddProductModal() {
+  document.getElementById('product-edit-id').value = '';
+  document.getElementById('product-name-input').value = '';
+  document.getElementById('product-cat').value = 'مشروب';
+  document.getElementById('product-price').value = '';
+  document.getElementById('product-stock').value = '';
+  document.getElementById('product-available').value = '1';
+  document.getElementById('add-product-modal').classList.remove('hidden');
+}
+
+function editProduct(id) {
+  const p = DB.getProducts().find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('product-edit-id').value = id;
+  document.getElementById('product-name-input').value = p.name;
+  document.getElementById('product-cat').value = p.category;
+  document.getElementById('product-price').value = p.price;
+  document.getElementById('product-stock').value = p.stock;
+  document.getElementById('product-available').value = p.available ? '1' : '0';
+  document.getElementById('add-product-modal').classList.remove('hidden');
+}
+
+function saveProduct() {
+  const eid = document.getElementById('product-edit-id').value;
+  const name = document.getElementById('product-name-input').value.trim();
+  const cat = document.getElementById('product-cat').value;
+  const price = parseFloat(document.getElementById('product-price').value);
+  const stock = parseInt(document.getElementById('product-stock').value) || 0;
+  const available = parseInt(document.getElementById('product-available').value);
+  if (!name || !price) { showToast('أدخل البيانات المطلوبة', 'error'); return; }
+  const products = DB.getProducts();
+  if (eid) {
+    const i = products.findIndex(p => p.id === parseInt(eid));
+    if (i >= 0) { products[i] = { ...products[i], name, category: cat, price, stock, available }; }
+  } else {
+    products.push({ id: genId(), name, category: cat, price, stock, available });
+  }
+  DB.setProducts(products);
+  closeModal('add-product-modal');
+  loadProductsTab();
+  showToast('تم حفظ المنتج', 'success');
+}
+
+function deleteProduct(id) {
+  confirm('هل تريد حذف هذا المنتج؟', () => {
+    DB.setProducts(DB.getProducts().filter(p => p.id !== id));
+    loadProductsTab();
+    showToast('تم حذف المنتج', 'success');
+  });
+}
+
+function toggleProduct(id) {
+  const products = DB.getProducts();
+  const i = products.findIndex(p => p.id === id);
+  if (i >= 0) { products[i].available = products[i].available ? 0 : 1; DB.setProducts(products); loadProductsTab(); }
+}
+
+// ===================================================================
+// INVENTORY TAB
+// ===================================================================
+function loadInventoryTab() {
+  const products = DB.getProducts();
+  const low = products.filter(p => p.stock <= CONFIG.lowStockThreshold);
+  const alert = document.getElementById('low-stock-alert');
+  if (low.length) {
+    alert.classList.remove('hidden');
+    alert.innerHTML = `<i class="fas fa-triangle-exclamation"></i> تحذير: المنتجات التالية مخزونها منخفض: ${low.map(p => p.name).join(' - ')}`;
+  } else { alert.classList.add('hidden'); }
+
+  document.getElementById('inventory-tbody').innerHTML = products.map(p => `
+    <tr>
+      <td style="font-weight:700;">${p.name}</td>
+      <td><span class="badge ${p.category === 'مشروب' ? 'badge-green' : 'badge-yellow'}">${p.category}</span></td>
+      <td class="${p.stock === 0 ? 'inv-low' : p.stock <= CONFIG.lowStockThreshold ? 'inv-mid' : 'inv-ok'}">${p.stock}</td>
+      <td><span class="badge ${p.stock === 0 ? 'badge-red' : p.stock <= CONFIG.lowStockThreshold ? 'badge-yellow' : 'badge-green'}">${p.stock === 0 ? 'نفد' : p.stock <= CONFIG.lowStockThreshold ? 'منخفض' : 'كافٍ'}</span></td>
+      <td>${fmtDate(Date.now())}</td>
+      <td><button class="btn btn-primary btn-sm" onclick="openInventoryModal(${p.id})"><i class="fas fa-pen"></i> تحديث</button></td>
+    </tr>
+  `).join('');
+}
+
+function openInventoryModal(pid) {
+  const p = DB.getProducts().find(x => x.id === pid);
+  if (!p) return;
+  document.getElementById('inv-product-id').value = pid;
+  document.getElementById('inv-product-name').value = p.name;
+  document.getElementById('inv-current').value = p.stock;
+  document.getElementById('inv-new-qty').value = p.stock;
+  document.getElementById('inventory-modal').classList.remove('hidden');
+}
+
+function updateInventory() {
+  const pid = parseInt(document.getElementById('inv-product-id').value);
+  const newQty = parseInt(document.getElementById('inv-new-qty').value);
+  if (isNaN(newQty) || newQty < 0) { showToast('أدخل كمية صحيحة', 'error'); return; }
+  const products = DB.getProducts();
+  const i = products.findIndex(p => p.id === pid);
+  if (i >= 0) { products[i].stock = newQty; DB.setProducts(products); }
+  closeModal('inventory-modal');
+  loadInventoryTab();
+  showToast('تم تحديث المخزون', 'success');
+}
+
+// ===================================================================
+// REPORTS TAB
+// ===================================================================
+function loadReports() {
+  const period = document.getElementById('report-period').value;
+  const now = new Date();
+  let from, to;
+  if (period === 'today') { from = new Date(now.setHours(0,0,0,0)).getTime(); to = Date.now(); }
+  else if (period === 'week') { from = new Date(now.setDate(now.getDate() - 7)).getTime(); to = Date.now(); }
+  else if (period === 'month') { from = new Date(now.getFullYear(), now.getMonth(), 1).getTime(); to = Date.now(); }
+  else {
+    document.getElementById('report-from').style.display = 'block';
+    document.getElementById('report-to').style.display = 'block';
+    from = new Date(document.getElementById('report-from').value).getTime() || 0;
+    to = new Date(document.getElementById('report-to').value).getTime() || Date.now();
+  }
+
+  const sessions = DB.getSessions().filter(s => s.startTime >= from && s.startTime <= to);
+  const orders = DB.getOrders().filter(o => sessions.find(s => s.id === o.sessionId));
+  const totalRev = sessions.reduce((s, x) => s + (x.totalCost || 0), 0);
+  const totalTime = sessions.reduce((s, x) => s + (x.elapsed || 0), 0);
+
+  document.getElementById('report-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-icon" style="background:var(--green-bg);color:var(--green)"><i class="fas fa-money-bill-wave"></i></div><div><div style="font-size:24px;font-weight:900;">${totalRev.toFixed(0)}</div><div style="font-size:12px;color:var(--text-muted);">إجمالي الإيرادات (${CONFIG.currency})</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:rgba(108,99,255,0.15);color:var(--accent)"><i class="fas fa-receipt"></i></div><div><div style="font-size:24px;font-weight:900;">${sessions.length}</div><div style="font-size:12px;color:var(--text-muted);">إجمالي الجلسات</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:var(--yellow-bg);color:var(--yellow)"><i class="fas fa-clock"></i></div><div><div style="font-size:24px;font-weight:900;">${(totalTime/3600).toFixed(1)}</div><div style="font-size:12px;color:var(--text-muted);">إجمالي الساعات</div></div></div>
+  `;
+
+  // Sessions table
+  const devices = DB.getDevices();
+  document.getElementById('sessions-report-tbody').innerHTML = sessions.slice(-100).reverse().map(s => {
+    const d = devices.find(x => x.id === s.deviceId);
+    const modeLabel = s.playMode === 'multi' ? '<span style="color:var(--green);font-weight:700;">جماعي</span>' : '<span style="color:var(--accent);font-weight:700;">فردي</span>';
+    const statusBadge = s.status === 'transferred' ? '<span class="badge badge-yellow">منقول</span>' : '';
+    return `<tr style="cursor:pointer;" onclick="openSessionDetail('${s.id}')">
+      <td>${d ? d.name : 'جهاز'} ${statusBadge}</td>
+      <td>${modeLabel}</td>
+      <td style="font-size:11px;">${fmtDateTime(s.startTime)}</td>
+      <td style="font-size:11px;">${fmtDateTime(s.endTime)}</td>
+      <td>${s.duration > 0 ? s.duration + 'د' : 'مفتوح'}</td>
+      <td>${(s.elapsed ? (s.elapsed/3600).toFixed(2) : '0')} س</td>
+      <td>${s.ordersCost ? s.ordersCost.toFixed(0) : '0'} ${CONFIG.currency}</td>
+      <td style="color:var(--orange);font-weight:700;">${s.prevCost ? s.prevCost.toFixed(0) : '0'} ${CONFIG.currency}</td>
+      <td style="font-weight:700;color:var(--green);">${(s.totalCost || 0).toFixed(0)} ${CONFIG.currency}</td>
+      <td><button class="btn btn-ghost btn-sm" style="font-size:11px;" onclick="event.stopPropagation();openSessionDetail('${s.id}')"><i class="fas fa-eye"></i></button></td>
+    </tr>`;
+  }).join('');
+
+  // Charts
+  renderDevicesChart(sessions, devices);
+  renderProductsChart(orders);
+}
+
+function renderDevicesChart(sessions, devices) {
+  const ctx = document.getElementById('devices-chart');
+  if (!ctx) return;
+  const labels = devices.map(d => d.name);
+  const data = devices.map(d => sessions.filter(s => s.deviceId === d.id).reduce((s, x) => s + (x.totalCost || 0), 0));
+  if (devicesChart) devicesChart.destroy();
+  devicesChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: ['#6c63ff','#00d68f','#ff4757','#ffd32a','#00a8ff'] }] },
+    options: { responsive: true, plugins: { legend: { labels: { color: '#9090b0', font: { size: 11 } } } } }
+  });
+}
+
+function renderProductsChart(orders) {
+  const ctx = document.getElementById('products-chart');
+  if (!ctx) return;
+  const map = {};
+  orders.forEach(o => { map[o.name] = (map[o.name] || 0) + o.qty; });
+  const sorted = Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  if (productsChart) productsChart.destroy();
+  productsChart = new Chart(ctx, {
+    type: 'bar',
+    data: { labels: sorted.map(x => x[0]), datasets: [{ label: 'الكمية', data: sorted.map(x => x[1]), backgroundColor: 'rgba(0,214,143,0.6)', borderColor: '#00d68f', borderWidth: 1 }] },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#9090b0', font: { size: 10 } }, grid: { color: '#2a2a3a' } }, y: { ticks: { color: '#9090b0', font: { size: 10 } }, grid: { color: '#2a2a3a' } } } }
+  });
+}
+
+function openSessionDetail(sessionId) {
+  const s = DB.getSessions().find(x => x.id == sessionId);
+  if (!s) return;
+  const devices = DB.getDevices();
+  const d = devices.find(x => x.id === s.deviceId);
+  const allOrders = DB.getOrders().filter(o => o.sessionId == sessionId);
+  const prices = d ? { single: d.singlePrice || d.hourPrice || CONFIG.hourPrice, multi: d.multiPrice || CONFIG.hourPrice } : { single: CONFIG.hourPrice, multi: CONFIG.hourPrice };
+
+  // Build segments section
+  const segs = s.segments || [];
+  let segHtml = '';
+  if (segs.length > 0) {
+    segHtml = `
+      <div style="margin-bottom:20px;">
+        <div style="font-weight:800;font-size:14px;margin-bottom:10px;color:var(--text-primary);border-bottom:2px solid var(--accent);padding-bottom:6px;">
+          <i class="fas fa-layer-group" style="color:var(--accent)"></i> تفصيل فترات اللعب
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead>
+            <tr style="background:var(--bg-input);">
+              <th style="padding:8px;text-align:right;border-bottom:1px solid var(--border);">#</th>
+              <th style="padding:8px;text-align:right;border-bottom:1px solid var(--border);">الوضع</th>
+              <th style="padding:8px;text-align:right;border-bottom:1px solid var(--border);">البداية</th>
+              <th style="padding:8px;text-align:right;border-bottom:1px solid var(--border);">النهاية</th>
+              <th style="padding:8px;text-align:right;border-bottom:1px solid var(--border);">المدة</th>
+              <th style="padding:8px;text-align:right;border-bottom:1px solid var(--border);">السعر/س</th>
+              <th style="padding:8px;text-align:right;border-bottom:1px solid var(--border);">التكلفة</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${segs.map((seg, i) => {
+              const end = seg.endTime || s.endTime || Date.now();
+              const durMs = end - seg.startTime;
+              const durMins = Math.floor(durMs / 60000);
+              const durSecs = Math.floor((durMs % 60000) / 1000);
+              const rate = seg.mode === 'multi' ? prices.multi : prices.single;
+              const cost = (durMs / 3600000) * rate;
+              const modeColor = seg.mode === 'multi' ? 'var(--green)' : 'var(--accent)';
+              const modeIcon = seg.mode === 'multi' ? '👥 جماعي' : '👤 فردي';
+              return `<tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:8px;">${i + 1}</td>
+                <td style="padding:8px;font-weight:700;color:${modeColor}">${modeIcon}</td>
+                <td style="padding:8px;">${fmtTime(seg.startTime)}</td>
+                <td style="padding:8px;">${seg.endTime ? fmtTime(seg.endTime) : '<span style="color:var(--accent)">جارٍ</span>'}</td>
+                <td style="padding:8px;">${durMins}د ${durSecs}ث</td>
+                <td style="padding:8px;">${rate} ${CONFIG.currency}</td>
+                <td style="padding:8px;font-weight:700;color:var(--green);">${cost.toFixed(2)} ${CONFIG.currency}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  // Build orders section
+  let ordersHtml = '';
+  if (allOrders.length > 0) {
+    ordersHtml = `
+      <div style="margin-bottom:20px;">
+        <div style="font-weight:800;font-size:14px;margin-bottom:10px;color:var(--text-primary);border-bottom:2px solid var(--green);padding-bottom:6px;">
+          <i class="fas fa-shopping-basket" style="color:var(--green)"></i> المشتريات والطلبات
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead>
+            <tr style="background:var(--bg-input);">
+              <th style="padding:8px;text-align:right;border-bottom:1px solid var(--border);">المنتج</th>
+              <th style="padding:8px;text-align:right;border-bottom:1px solid var(--border);">الكمية</th>
+              <th style="padding:8px;text-align:right;border-bottom:1px solid var(--border);">السعر</th>
+              <th style="padding:8px;text-align:right;border-bottom:1px solid var(--border);">الإجمالي</th>
+              <th style="padding:8px;text-align:right;border-bottom:1px solid var(--border);">الوقت</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${allOrders.map(o => `<tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:8px;">${o.name}</td>
+              <td style="padding:8px;">×${o.qty}</td>
+              <td style="padding:8px;">${o.price} ${CONFIG.currency}</td>
+              <td style="padding:8px;font-weight:700;color:var(--green);">${(o.price * o.qty).toFixed(0)} ${CONFIG.currency}</td>
+              <td style="padding:8px;font-size:11px;color:var(--text-muted);">${fmtTime(o.time)}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  } else {
+    ordersHtml = `<div style="color:var(--text-muted);font-size:13px;padding:12px 0;">لا توجد طلبات في هذه الجلسة</div>`;
+  }
+
+  // Summary
+  const timeCost = s.timeCost || 0;
+  const ordersCost = s.ordersCost || 0;
+  const prevCost = s.prevCost || 0;
+  const discount = s.discount || 0;
+  const totalCost = s.totalCost || 0;
+  const statusColor = s.status === 'closed' ? 'var(--green)' : s.status === 'transferred' ? 'var(--yellow)' : 'var(--accent)';
+  const statusLabel = s.status === 'closed' ? 'مكتملة' : s.status === 'transferred' ? 'منقولة' : 'نشطة';
+
+  const html = `
+    <!-- Header info -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+      <div style="background:var(--bg-input);border-radius:var(--radius-sm);padding:14px;">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">الجهاز</div>
+        <div style="font-weight:800;font-size:16px;">${d ? d.name : 'جهاز'}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">وضع: <span style="font-weight:700;color:${s.playMode==='multi'?'var(--green)':'var(--accent)'};">${s.playMode === 'multi' ? '👥 جماعي' : '👤 فردي'}</span></div>
+      </div>
+      <div style="background:var(--bg-input);border-radius:var(--radius-sm);padding:14px;">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">التوقيت</div>
+        <div style="font-size:13px;"><i class="fas fa-play" style="color:var(--green);font-size:10px;"></i> ${fmtDateTime(s.startTime)}</div>
+        <div style="font-size:13px;margin-top:4px;"><i class="fas fa-stop" style="color:var(--red);font-size:10px;"></i> ${fmtDateTime(s.endTime)}</div>
+        <div style="margin-top:4px;"><span style="font-weight:700;color:${statusColor};font-size:12px;">${statusLabel}</span></div>
+      </div>
+    </div>
+
+    ${segHtml}
+    ${ordersHtml}
+
+    <!-- Bill summary -->
+    <div style="background:var(--bg-input);border-radius:var(--radius-sm);padding:16px;">
+      <div style="font-weight:800;font-size:14px;margin-bottom:12px;"><i class="fas fa-file-invoice-dollar" style="color:var(--accent)"></i> ملخص الفاتورة</div>
+      ${prevCost > 0 ? `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--border);font-size:13px;"><span style="color:var(--text-muted);">رصيد منقول/سابق</span><span style="color:var(--orange);font-weight:700;">${prevCost.toFixed(2)} ${CONFIG.currency}</span></div>` : ''}
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--border);font-size:13px;"><span style="color:var(--text-muted);">تكلفة الوقت</span><span style="font-weight:700;">${timeCost.toFixed(2)} ${CONFIG.currency}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--border);font-size:13px;"><span style="color:var(--text-muted);">تكلفة الطلبات</span><span style="font-weight:700;">${ordersCost.toFixed(2)} ${CONFIG.currency}</span></div>
+      ${discount > 0 ? `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--border);font-size:13px;"><span style="color:var(--red);">خصم</span><span style="color:var(--red);font-weight:700;">— ${discount.toFixed(2)} ${CONFIG.currency}</span></div>` : ''}
+      <div style="display:flex;justify-content:space-between;padding:10px 0 0;font-size:16px;font-weight:900;"><span>الإجمالي</span><span style="color:var(--green);">${totalCost.toFixed(2)} ${CONFIG.currency}</span></div>
+    </div>`;
+
+  setEl('session-detail-body', html);
+  document.getElementById('session-detail-modal').classList.remove('hidden');
+}
+
+function exportCSV() {
+  const period = document.getElementById('report-period').value;
+  const sessions = DB.getSessions();
+  const devices = DB.getDevices();
+  const rows = [['الجهاز', 'وقت البداية', 'وقت النهاية', 'المدة', 'تكلفة الوقت', 'تكلفة الطلبات', 'الإجمالي']];
+  sessions.forEach(s => {
+    const d = devices.find(x => x.id === s.deviceId);
+    rows.push([d ? d.name : 'جهاز', fmtDateTime(s.startTime), fmtDateTime(s.endTime), s.duration || 'مفتوح', (s.timeCost || 0).toFixed(2), (s.ordersCost || 0).toFixed(2), (s.totalCost || 0).toFixed(2)]);
+  });
+  const csv = '\uFEFF' + rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `report_${Date.now()}.csv`; a.click();
+  showToast('تم تصدير التقرير بنجاح', 'success');
+}
+
+// ===================================================================
+// STAFF TAB
+// ===================================================================
+function loadStaffTab() {
+  const staff = DB.getStaff();
+  document.getElementById('staff-tbody').innerHTML = staff.map(s => `
+    <tr>
+      <td style="font-weight:700;">${s.name}</td>
+      <td><span class="badge ${s.role === 'admin' ? 'badge-red' : 'badge-green'}">${s.role === 'admin' ? 'مدير' : 'كاشير'}</span></td>
+      <td><span class="shift-badge ${s.loggedIn ? 'shift-in' : 'shift-out'}">${s.loggedIn ? 'داخل' : 'خارج'}</span></td>
+      <td style="font-size:11px;">${fmtDateTime(s.loginTime)}</td>
+      <td>-</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="editStaff(${s.id})"><i class="fas fa-pen"></i></button>
+        ${s.id !== currentUser.id ? `<button class="btn btn-danger btn-sm" onclick="deleteStaff(${s.id})"><i class="fas fa-trash-can"></i></button>` : ''}
+      </td>
+    </tr>
+  `).join('');
+
+  const log = DB.getLoginLog().slice(-20).reverse();
+  document.getElementById('login-log-tbody').innerHTML = log.map(l => {
+    const duration = l.logoutTime ? ((l.logoutTime - l.loginTime) / 3600000).toFixed(1) + ' س' : 'لم يخرج';
+    return `<tr>
+      <td style="font-weight:700;">${l.staffName}</td>
+      <td style="font-size:11px;">${fmtDateTime(l.loginTime)}</td>
+      <td style="font-size:11px;">${fmtDateTime(l.logoutTime)}</td>
+      <td>${duration}</td>
+    </tr>`;
+  }).join('');
+}
+
+function openAddStaffModal() {
+  document.getElementById('staff-edit-id').value = '';
+  document.getElementById('staff-name-input').value = '';
+  document.getElementById('staff-username').value = '';
+  document.getElementById('staff-password').value = '';
+  document.getElementById('staff-role').value = 'cashier';
+  document.getElementById('staff-salary').value = '';
+  document.getElementById('add-staff-modal').classList.remove('hidden');
+}
+
+function editStaff(id) {
+  const s = DB.getStaff().find(x => x.id === id);
+  if (!s) return;
+  document.getElementById('staff-edit-id').value = id;
+  document.getElementById('staff-name-input').value = s.name;
+  document.getElementById('staff-username').value = s.username;
+  document.getElementById('staff-password').value = s.password;
+  document.getElementById('staff-role').value = s.role;
+  document.getElementById('staff-salary').value = s.salary || '';
+  document.getElementById('add-staff-modal').classList.remove('hidden');
+}
+
+function saveStaff() {
+  const eid = document.getElementById('staff-edit-id').value;
+  const name = document.getElementById('staff-name-input').value.trim();
+  const username = document.getElementById('staff-username').value.trim();
+  const password = document.getElementById('staff-password').value;
+  const role = document.getElementById('staff-role').value;
+  const salary = parseFloat(document.getElementById('staff-salary').value) || 0;
+  if (!name || !username || !password) { showToast('أدخل جميع البيانات المطلوبة', 'error'); return; }
+  const staff = DB.getStaff();
+  if (eid) {
+    const i = staff.findIndex(s => s.id === parseInt(eid));
+    if (i >= 0) { staff[i] = { ...staff[i], name, username, password, role, salary }; }
+  } else {
+    if (staff.find(s => s.username === username)) { showToast('اسم المستخدم موجود بالفعل', 'error'); return; }
+    staff.push({ id: genId(), name, username, password, role, salary, loggedIn: false, loginTime: null, logoutTime: null });
+  }
+  DB.setStaff(staff);
+  closeModal('add-staff-modal');
+  loadStaffTab();
+  showToast('تم حفظ بيانات الموظف', 'success');
+}
+
+function deleteStaff(id) {
+  confirm('هل تريد حذف هذا الموظف؟', () => {
+    DB.setStaff(DB.getStaff().filter(s => s.id !== id));
+    loadStaffTab();
+    showToast('تم حذف الموظف', 'success');
+  });
+}
+
+// ===================================================================
+// ADVANCES TAB
+// ===================================================================
+function loadAdvancesTab() {
+  const advances = DB.getAdvances();
+  const staff = DB.getStaff();
+  const total = advances.filter(a => a.status === 'pending').reduce((s, a) => s + a.amount, 0);
+  const paid = advances.filter(a => a.status === 'paid').reduce((s, a) => s + a.amount, 0);
+
+  document.getElementById('advance-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-icon" style="background:var(--red-bg);color:var(--red)"><i class="fas fa-hand-holding-dollar"></i></div><div><div style="font-size:22px;font-weight:900;">${total.toFixed(0)} ${CONFIG.currency}</div><div style="font-size:12px;color:var(--text-muted);">سلف معلقة</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:var(--green-bg);color:var(--green)"><i class="fas fa-circle-check"></i></div><div><div style="font-size:22px;font-weight:900;">${paid.toFixed(0)} ${CONFIG.currency}</div><div style="font-size:12px;color:var(--text-muted);">سلف مدفوعة</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:rgba(108,99,255,0.15);color:var(--accent)"><i class="fas fa-list"></i></div><div><div style="font-size:22px;font-weight:900;">${advances.length}</div><div style="font-size:12px;color:var(--text-muted);">إجمالي السلف</div></div></div>
+  `;
+
+  document.getElementById('advances-tbody').innerHTML = advances.slice().reverse().map(a => {
+    const s = staff.find(x => x.id === a.staffId);
+    return `<tr>
+      <td style="font-weight:700;">${s ? s.name : 'موظف'}</td>
+      <td style="color:var(--red);font-weight:700;">${a.amount} ${CONFIG.currency}</td>
+      <td style="font-size:11px;">${fmtDate(a.date)}</td>
+      <td>${a.reason || '--'}</td>
+      <td><span class="badge ${a.status === 'pending' ? 'badge-yellow' : 'badge-green'}">${a.status === 'pending' ? 'معلق' : 'مدفوع'}</span></td>
+      <td>
+        ${a.status === 'pending' ? `<button class="btn btn-success btn-sm" onclick="markAdvancePaid(${a.id})"><i class="fas fa-check"></i> مدفوع</button>` : ''}
+        <button class="btn btn-danger btn-sm" onclick="deleteAdvance(${a.id})"><i class="fas fa-trash-can"></i></button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openAddAdvanceModal() {
+  const staff = DB.getStaff();
+  const sel = document.getElementById('advance-staff');
+  sel.innerHTML = staff.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  document.getElementById('advance-amount').value = '';
+  document.getElementById('advance-reason').value = '';
+  document.getElementById('add-advance-modal').classList.remove('hidden');
+}
+
+function saveAdvance() {
+  const staffId = parseInt(document.getElementById('advance-staff').value);
+  const amount = parseFloat(document.getElementById('advance-amount').value);
+  const reason = document.getElementById('advance-reason').value.trim();
+  if (!amount || amount <= 0) { showToast('أدخل مبلغاً صحيحاً', 'error'); return; }
+  const advances = DB.getAdvances();
+  advances.push({ id: genId(), staffId, amount, reason, date: Date.now(), status: 'pending' });
+  DB.setAdvances(advances);
+  closeModal('add-advance-modal');
+  loadAdvancesTab();
+  showToast('تمت إضافة السلفة', 'success');
+}
+
+function markAdvancePaid(id) {
+  const advances = DB.getAdvances();
+  const i = advances.findIndex(a => a.id === id);
+  if (i >= 0) { advances[i].status = 'paid'; DB.setAdvances(advances); loadAdvancesTab(); showToast('تم تحديد السلفة كمدفوعة', 'success'); }
+}
+
+function deleteAdvance(id) {
+  confirm('هل تريد حذف هذه السلفة؟', () => {
+    DB.setAdvances(DB.getAdvances().filter(a => a.id !== id));
+    loadAdvancesTab();
+    showToast('تم حذف السلفة', 'success');
+  });
+}
+
+// ===================================================================
+// SETTINGS TAB
+// ===================================================================
+function loadSettingsTab() {
+  const s = DB.getSettings();
+  document.getElementById('shop-name').value = s.shopName || CONFIG.shopName;
+  document.getElementById('low-stock-threshold').value = s.lowStockThreshold || CONFIG.lowStockThreshold;
+  document.getElementById('currency-symbol').value = s.currency || CONFIG.currency;
+  // Day/Night defaults
+  document.getElementById('setting-single-day').value   = s.defaultSingleDay   || s.hourPrice || CONFIG.hourPrice;
+  document.getElementById('setting-single-night').value = s.defaultSingleNight || s.hourPrice || CONFIG.hourPrice;
+  document.getElementById('setting-multi-day').value    = s.defaultMultiDay    || (s.hourPrice||CONFIG.hourPrice) + 10;
+  document.getElementById('setting-multi-night').value  = s.defaultMultiNight  || (s.hourPrice||CONFIG.hourPrice) + 10;
+}
+
+function saveSettings() {
+  const settings = {
+    shopName:            document.getElementById('shop-name').value.trim() || 'GameZone',
+    lowStockThreshold:   parseInt(document.getElementById('low-stock-threshold').value) || 5,
+    currency:            document.getElementById('currency-symbol').value.trim() || 'ج.م',
+    defaultSingleDay:    parseFloat(document.getElementById('setting-single-day').value)   || CONFIG.hourPrice,
+    defaultSingleNight:  parseFloat(document.getElementById('setting-single-night').value) || CONFIG.hourPrice,
+    defaultMultiDay:     parseFloat(document.getElementById('setting-multi-day').value)    || CONFIG.hourPrice + 10,
+    defaultMultiNight:   parseFloat(document.getElementById('setting-multi-night').value)  || CONFIG.hourPrice + 10,
+  };
+  // Keep hourPrice as the day single for backward compat
+  settings.hourPrice = settings.defaultSingleDay;
+  DB.setSettings(settings);
+  CONFIG.hourPrice = settings.hourPrice;
+  CONFIG.currency = settings.currency;
+  CONFIG.shopName = settings.shopName;
+  CONFIG.lowStockThreshold = settings.lowStockThreshold;
+  setEl('header-title', settings.shopName);
+  showToast('تم حفظ الإعدادات', 'success');
+}
+
+function exportData() {
+  const data = {
+    devices: DB.getDevices(), sessions: DB.getSessions(), orders: DB.getOrders(),
+    products: DB.getProducts(), staff: DB.getStaff(), advances: DB.getAdvances(),
+    settings: DB.getSettings(), loginLog: DB.getLoginLog(), exportDate: new Date().toISOString(),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `gamezone_backup_${Date.now()}.json`; a.click();
+  showToast('تم تصدير البيانات', 'success');
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.devices) DB.setDevices(data.devices);
+      if (data.sessions) DB.setSessions(data.sessions);
+      if (data.orders) DB.setOrders(data.orders);
+      if (data.products) DB.setProducts(data.products);
+      if (data.staff) DB.setStaff(data.staff);
+      if (data.advances) DB.setAdvances(data.advances);
+      if (data.settings) DB.setSettings(data.settings);
+      if (data.loginLog) DB.setLoginLog(data.loginLog);
+      showToast('تم استيراد البيانات بنجاح', 'success');
+      loadSettingsTab();
+    } catch { showToast('خطأ في استيراد البيانات', 'error'); }
+  };
+  reader.readAsText(file);
+}
+
+function clearTodayData() {
+  confirm('هل تريد مسح جلسات اليوم فقط؟', () => {
+    const today = new Date().toDateString();
+    const sessions = DB.getSessions().filter(s => new Date(s.startTime).toDateString() !== today);
+    DB.setSessions(sessions);
+    // Clear in-memory and persisted active sessions & pending transfers
+    Object.keys(activeSessions).forEach(k => delete activeSessions[k]);
+    Object.keys(pendingTransfers).forEach(k => delete pendingTransfers[k]);
+    savePendingTransfers();
+    renderDevicesGrid();
+    showToast('تم مسح بيانات اليوم', 'info');
+  });
+}
+
+function resetAllData() {
+  confirm('تحذير: سيتم مسح جميع البيانات! هل أنت متأكد؟', () => {
+    ['devices','sessions','orders','products','staff','advances','settings','loginlog','seeded','pendingTransfers'].forEach(k => DB.remove(k));
+    showToast('تم مسح جميع البيانات', 'warning');
+    setTimeout(() => location.reload(), 1000);
+  });
+}
+
+// ===================================================================
+// THEME TOGGLE
+// ===================================================================
+function toggleTheme() {
+  document.body.classList.toggle('light-mode');
+  const icon = document.getElementById('theme-icon');
+  icon.className = document.body.classList.contains('light-mode') ? 'fas fa-sun' : 'fas fa-moon';
+}
+
+// ===================================================================
+// KEYBOARD SHORTCUTS
+// ===================================================================
+document.addEventListener('keydown', e => {
+  if (!currentUser) return;
+  if (e.key === 'Escape') document.querySelectorAll('.modal-overlay:not(.hidden)').forEach(m => m.classList.add('hidden'));
+});
+
+// Close dropdowns on outside click
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search-dropdown')) {
+    const dd = document.getElementById('product-dropdown');
+    if (dd) dd.classList.add('hidden');
+    const sd = document.getElementById('standalone-dropdown');
+    if (sd) sd.classList.add('hidden');
+  }
+});
+
+// ===================================================================
+// PLAY MODE
+// ===================================================================
+function setPlayMode(mode) {
+  const sess = activeSessions[currentDeviceId];
+
+  if (sess && sess.running) {
+    // LOCKED during active session — cannot switch
+    showToast('لا يمكن تغيير الوضع أثناء الجلسة. أنهِ الجلسة الحالية أولاً ثم ابدأ جديدة.', 'error');
+    return;
+  }
+  // Only allowed before starting
+  selectedPlayMode = mode;
+  updateModeUI(mode);
+}
+
+function updateModeUI(mode) {
+  const single = document.getElementById('mode-single');
+  const multi = document.getElementById('mode-multi');
+  if (!single || !multi) return;
+  if (mode === 'single') {
+    single.style.background = 'var(--accent)'; single.style.color = '#fff'; single.style.borderColor = 'var(--accent)';
+    multi.style.background = 'var(--bg-input)'; multi.style.color = 'var(--text-secondary)'; multi.style.borderColor = 'var(--border)';
+  } else {
+    multi.style.background = 'var(--green)'; multi.style.color = '#000'; multi.style.borderColor = 'var(--green)';
+    single.style.background = 'var(--bg-input)'; single.style.color = 'var(--text-secondary)'; single.style.borderColor = 'var(--border)';
+  }
+  const prices = getDevicePrices(currentDeviceId);
+  const modeLabel = mode === 'single'
+    ? `<i class="fas fa-user"></i> فردي <span style="font-size:11px;color:var(--text-muted)">(${prices.single} ${CONFIG.currency}/س)</span>`
+    : `<i class="fas fa-users"></i> جماعي <span style="font-size:11px;color:var(--text-muted)">(${prices.multi} ${CONFIG.currency}/س)</span>`;
+  setEl('play-mode-display', modeLabel);
+}
+
+function lockModeButtons(locked) {
+  const single = document.getElementById('mode-single');
+  const multi  = document.getElementById('mode-multi');
+  if (!single || !multi) return;
+  single.style.opacity = locked ? '0.45' : '1';
+  multi.style.opacity  = locked ? '0.45' : '1';
+  single.title = locked ? 'أنهِ الجلسة أولاً لتغيير الوضع' : '';
+  multi.title  = locked ? 'أنهِ الجلسة أولاً لتغيير الوضع' : '';
+}
+
+function savePendingTransfers() {
+  DB.set('pendingTransfers', pendingTransfers);
+}
+
+// ===================================================================
+// SESSION TRANSFER
+// ===================================================================
+function openTransferModal() {
+  const sess = activeSessions[currentDeviceId];
+  if (!sess || !sess.running) { showToast('لا توجد جلسة نشطة للنقل', 'error'); return; }
+
+  const devices = DB.getDevices();
+  const fromDev = devices.find(d => d.id === currentDeviceId);
+  const elapsed = Math.floor((Date.now() - sess.startTime) / 1000);
+  const timeCost = calcSegmentsCost(sess.segments || [], currentDeviceId);
+  const ordersCost = calcOrdersCost(sess.orders || []);
+  const prevCost = sess.prevCost || 0;
+  const currentTotal = timeCost + ordersCost + prevCost;
+
+  setEl('transfer-from-name', fromDev ? fromDev.name : 'الجهاز الحالي');
+  setEl('transfer-current-total', currentTotal.toFixed(0) + ' ' + CONFIG.currency);
+  setEl('transfer-orders-count', (sess.orders || []).length + ' صنف');
+
+  const sel = document.getElementById('transfer-target-device');
+  const availableDevices = devices.filter(d => d.id !== currentDeviceId && !activeSessions[d.id] && d.status === 'available');
+  if (!availableDevices.length) {
+    showToast('لا توجد أجهزة متاحة للنقل إليها', 'error');
+    return;
+  }
+  sel.innerHTML = availableDevices.map(d => {
+    const sp = d.singlePrice || d.hourPrice || CONFIG.hourPrice;
+    const mp = d.multiPrice || CONFIG.hourPrice;
+    return `<option value="${d.id}">${d.name} (فردي: ${sp} | جماعي: ${mp} ${CONFIG.currency}/س)</option>`;
+  }).join('');
+  document.getElementById('transfer-modal').classList.remove('hidden');
+}
+
+function executeTransfer() {
+  const sess = activeSessions[currentDeviceId];
+  if (!sess) return;
+  const targetId = parseInt(document.getElementById('transfer-target-device').value);
+  if (!targetId) return;
+
+  // Close last segment on current device
+  const now = Date.now();
+  if (sess.segments && sess.segments.length > 0) {
+    const last = sess.segments[sess.segments.length - 1];
+    if (!last.endTime) last.endTime = now;
+  }
+
+  const fromDeviceId = currentDeviceId;
+  const devices = DB.getDevices();
+  const fromDev = devices.find(d => d.id === fromDeviceId);
+  const toDev = devices.find(d => d.id === targetId);
+
+  // Calculate accumulated cost
+  const elapsed = Math.floor((now - sess.startTime) / 1000);
+  const timeCost = calcSegmentsCost(sess.segments || [], fromDeviceId);
+  const ordersCost = calcOrdersCost(sess.orders || []);
+  const prevCost = sess.prevCost || 0;
+  const accumulatedCost = timeCost + ordersCost + prevCost;
+
+  // Mark old DB session as 'transferred'
+  const sessions = DB.getSessions();
+  const si = sessions.findIndex(s => s.id === sess.sessionId);
+  if (si >= 0) {
+    sessions[si].endTime = now;
+    sessions[si].elapsed = elapsed;
+    sessions[si].timeCost = timeCost;
+    sessions[si].ordersCost = ordersCost;
+    sessions[si].prevCost = prevCost;
+    sessions[si].totalCost = accumulatedCost;
+    sessions[si].segments = sess.segments;
+    sessions[si].status = 'transferred';
+    sessions[si].transferredTo = targetId;
+    sessions[si].playMode = sess.playMode || 'single';
+    DB.setSessions(sessions);
+  }
+
+  // Store as PENDING transfer — NOT auto-started
+  pendingTransfers[targetId] = {
+    prevCost: accumulatedCost,
+    orders: [...(sess.orders || [])],
+    transferredFrom: fromDeviceId,
+    transferChain: [...(sess.transferChain || [fromDeviceId]), targetId],
+    duration: sess.duration,
+  };
+  savePendingTransfers();
+
+  // Free old device
+  delete activeSessions[fromDeviceId];
+
+  closeModal('transfer-modal');
+  closeModal('session-modal');
+  renderDevicesGrid();
+
+  showToast(`تم نقل البيانات من ${fromDev ? fromDev.name : ''} إلى ${toDev ? toDev.name : ''} — افتح الجهاز الجديد لبدء الجلسة`, 'info');
+}
+
+// Enter key on login
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('login-page').style.display !== 'none') doLogin();
+});
+
+// ===================================================================
+// STANDALONE ORDERS (direct drinks/food without device)
+// ===================================================================
+let standaloneCart = []; // [{productId, name, price, qty}]
+let standaloneSelectedId = null;
+
+function initStandalonePanel() {
+  standaloneCart = [];
+  renderStandaloneQuickBtns();
+  renderStandaloneCart();
+}
+
+function renderStandaloneQuickBtns() {
+  const products = DB.getProducts().filter(p => p.available);
+  const container = document.getElementById('standalone-quick-btns');
+  if (!container) return;
+  container.innerHTML = products.slice(0, 8).map(p => `
+    <div class="quick-prod-btn" onclick="addStandaloneById(${p.id})">${p.name}<span style="color:var(--accent);margin-right:4px;font-size:10px;">${p.price}</span></div>
+  `).join('');
+}
+
+function standaloneSearch(q) {
+  const dd = document.getElementById('standalone-dropdown');
+  if (!q) { dd.classList.add('hidden'); standaloneSelectedId = null; return; }
+  const products = DB.getProducts().filter(p => p.available && p.name.includes(q));
+  if (!products.length) { dd.classList.add('hidden'); return; }
+  dd.innerHTML = products.map(p => `
+    <div class="dropdown-item" onclick="standaloneSelectProduct(${p.id}, '${p.name}')">
+      <span>${p.name}</span><span style="color:var(--accent);font-weight:700;">${p.price} ${CONFIG.currency}</span>
+    </div>
+  `).join('');
+  dd.classList.remove('hidden');
+}
+
+function standaloneSelectProduct(pid, name) {
+  standaloneSelectedId = pid;
+  document.getElementById('standalone-search').value = name;
+  document.getElementById('standalone-dropdown').classList.add('hidden');
+}
+
+function addStandaloneById(pid) {
+  const qty = parseInt(document.getElementById('standalone-qty').value) || 1;
+  const p = DB.getProducts().find(x => x.id === pid);
+  if (p) addToStandaloneCart(p, qty);
+}
+
+function addStandaloneProduct() {
+  if (!standaloneSelectedId) { showToast('اختر منتجاً أولاً', 'error'); return; }
+  const qty = parseInt(document.getElementById('standalone-qty').value) || 1;
+  const p = DB.getProducts().find(x => x.id === standaloneSelectedId);
+  if (p) { addToStandaloneCart(p, qty); document.getElementById('standalone-search').value = ''; standaloneSelectedId = null; }
+}
+
+function addToStandaloneCart(product, qty) {
+  const existing = standaloneCart.find(o => o.productId === product.id);
+  if (existing) { existing.qty += qty; } else {
+    standaloneCart.push({ productId: product.id, name: product.name, price: product.price, qty });
+  }
+  // Reduce stock
+  const products = DB.getProducts();
+  const pi = products.findIndex(p => p.id === product.id);
+  if (pi >= 0) { products[pi].stock = Math.max(0, (products[pi].stock || 0) - qty); DB.setProducts(products); }
+  renderStandaloneCart();
+  showToast(`تمت إضافة ${product.name} x${qty}`, 'success');
+  if (products[pi] && products[pi].stock <= CONFIG.lowStockThreshold) showToast(`تنبيه: مخزون ${product.name} منخفض!`, 'warning');
+}
+
+function renderStandaloneCart() {
+  const list = document.getElementById('standalone-orders-list');
+  const countEl = document.getElementById('standalone-count');
+  const totalEl = document.getElementById('standalone-total');
+  const itemsCountEl = document.getElementById('standalone-items-count');
+  if (!list) return;
+
+  const total = standaloneCart.reduce((s, o) => s + o.price * o.qty, 0);
+  const itemCount = standaloneCart.reduce((s, o) => s + o.qty, 0);
+  if (countEl) countEl.textContent = standaloneCart.length;
+  if (totalEl) totalEl.textContent = total.toFixed(0) + ' ' + CONFIG.currency;
+  if (itemsCountEl) itemsCountEl.textContent = itemCount;
+
+  if (!standaloneCart.length) {
+    list.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:16px;font-size:12px;">لا توجد طلبات</div>';
+    return;
+  }
+  list.innerHTML = standaloneCart.map(o => `
+    <div class="order-item">
+      <div class="name" style="font-size:12px;">${o.name}</div>
+      <div class="qty-ctrl">
+        <button class="qty-btn" onclick="changeStandaloneQty(${o.productId},-1)"><i class="fas fa-minus"></i></button>
+        <span style="font-weight:700;font-size:13px;">${o.qty}</span>
+        <button class="qty-btn" onclick="changeStandaloneQty(${o.productId},1)"><i class="fas fa-plus"></i></button>
+      </div>
+      <span style="color:var(--accent);font-weight:700;font-size:12px;margin-right:6px;">${(o.price*o.qty).toFixed(0)} ${CONFIG.currency}</span>
+      <button class="qty-btn" style="color:var(--red);" onclick="removeStandaloneItem(${o.productId})"><i class="fas fa-trash-can"></i></button>
+    </div>
+  `).join('');
+}
+
+function changeStandaloneQty(productId, delta) {
+  const o = standaloneCart.find(x => x.productId === productId);
+  if (!o) return;
+  o.qty = Math.max(1, o.qty + delta);
+  renderStandaloneCart();
+}
+
+function removeStandaloneItem(productId) {
+  standaloneCart = standaloneCart.filter(o => o.productId !== productId);
+  renderStandaloneCart();
+}
+
+function clearStandaloneOrders() {
+  if (!standaloneCart.length) return;
+  confirm('هل تريد مسح جميع الطلبات المباشرة؟', () => {
+    standaloneCart = [];
+    renderStandaloneCart();
+    showToast('تم مسح الطلبات', 'info');
+  });
+}
+
+function checkoutStandalone() {
+  if (!standaloneCart.length) { showToast('أضف طلبات أولاً', 'error'); return; }
+  const total = standaloneCart.reduce((s, o) => s + o.price * o.qty, 0);
+
+  // Save as a standalone "session" with deviceId=0
+  const sessionId = genId();
+  const now = Date.now();
+  const sessions = DB.getSessions();
+  sessions.push({
+    id: sessionId, deviceId: 0, startTime: now, endTime: now,
+    elapsed: 0, duration: 0, timeCost: 0,
+    ordersCost: total, totalCost: total,
+    status: 'standalone', staffId: currentUser ? currentUser.id : 0,
+    note: 'طلب مباشر'
+  });
+  DB.setSessions(sessions);
+
+  // Save orders
+  const orders = DB.getOrders();
+  standaloneCart.forEach(o => {
+    orders.push({ id: genId(), sessionId, productId: o.productId, name: o.name, price: o.price, qty: o.qty, time: now });
+  });
+  DB.setOrders(orders);
+
+  showToast(`تم تسجيل الدفع ✓ الإجمالي: ${total.toFixed(0)} ${CONFIG.currency}`, 'success');
+  standaloneCart = [];
+  renderStandaloneCart();
+}
+
+// ===================================================================
+// INIT
+// ===================================================================
+(async () => {
+  // Show loading overlay while fetching data from server
+  document.getElementById('loading-overlay').style.display = 'flex';
+  try {
+    await DB.load();
+  } catch(e) {
+    console.error('Failed to connect to server:', e);
+    alert('⚠️ تعذّر الاتصال بالسيرفر!\nتأكد أن server.js يعمل على المنفذ 3000');
+    return;
+  }
+  document.getElementById('loading-overlay').style.display = 'none';
+  seedData();
+  startClock();
+})();
+</script>
+</body>
+</html>
